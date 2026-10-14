@@ -23,6 +23,7 @@ window.CONFIG = {
   tgToken: '8808003402:AAHt6v1E3XqR5XxIW_L-F56H-WJm1-35zpw',                  // токен Telegram-бота от @BotFather
   tgChat: '874631347',                   // твой chat id
   notifyOpen: true,           // сообщение в Telegram, когда она открыла сайт
+  ntfyHer: '',                // по желанию: тема в ntfy.sh, чтобы ей приходили пуш-уведомления (см. ответ в чате)
   notifyRolls: true,          // сообщение в Telegram о каждом выпавшем варианте
 
   items: [
@@ -217,6 +218,61 @@ span.check { cursor: default; }
 .help summary { cursor: pointer; color: var(--link); font-size: 14px; }
 .help ol { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 8px; }
 .help p { margin-top: 10px; }
+
+/* свидание: статусы, комментарии, анимации */
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,72,77,.5)}70%,100%{box-shadow:0 0 0 9px rgba(229,72,77,0)}}
+@keyframes shimmer{to{background-position:-250% 0}}
+@keyframes slideDown{from{opacity:0;transform:translate(-50%,-28px) scale(.94)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@keyframes floaty{50%{transform:translateY(-6px)}}
+@keyframes okpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+[data-panel]:not([hidden]) .inner>*{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+[data-panel]:not([hidden]) .inner>:nth-child(2){animation-delay:.06s}
+[data-panel]:not([hidden]) .inner>:nth-child(3){animation-delay:.12s}
+[data-panel]:not([hidden]) .inner>:nth-child(n+4){animation-delay:.18s}
+.landing>*{animation:rise .8s cubic-bezier(.2,.8,.2,1) both}.landing>:nth-child(2){animation-delay:.2s}
+.landing .av-hero{animation:rise .8s both,floaty 5s 1s ease-in-out infinite}
+.btn.blue:hover{box-shadow:0 8px 20px rgba(0,113,227,.3);transform:translateY(-1px)}
+.pill{position:relative}
+.bd{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e5484d;margin-left:7px;vertical-align:middle;animation:pop .4s cubic-bezier(.2,1.6,.4,1),pulse 1.6s 1s infinite}
+#plan-her,#plan-him{position:relative}
+.plancard.pending{background:linear-gradient(110deg,#fff 40%,#fff1e8 50%,#fff 60%) 0 0/250% 100%;animation:shimmer 3.2s linear infinite}
+.plancard.ok{outline:2px solid #188038}
+.plancard.ok .st{animation:okpop .5s cubic-bezier(.2,1.2,.4,1)}
+.plancard label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+.plancard .what{margin-top:10px}.plancard s{color:var(--steel)}
+.st{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--mist)}
+.st.pending::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 1.4s infinite}
+.st.ok{background:#e6f4ea;color:#188038}.st.no{color:var(--slate)}
+.cms{display:grid;gap:8px;margin-top:16px}
+.cm{justify-self:start;background:var(--mist);border-radius:18px 18px 18px 6px;padding:10px 14px;font-size:14px;max-width:85%;overflow-wrap:anywhere;animation:rise .35s both}
+.cm.me{justify-self:end;background:var(--ink);color:#fff;border-radius:18px 18px 6px 18px}
+.cm .who{display:block;font-size:11px;opacity:.65;margin-bottom:2px}
+.toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:40;background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);animation:slideDown .5s cubic-bezier(.2,1.2,.4,1) both;cursor:pointer;max-width:90vw}
+.toast.out{opacity:0;transition:opacity .4s}
+
+/* лента */
+@keyframes bigpop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}30%{transform:translate(-50%,-50%) scale(1.25);opacity:1}100%{transform:translate(-50%,-75%) scale(1);opacity:0}}
+@keyframes imgin{from{opacity:0;filter:blur(14px)}to{opacity:1;filter:none}}
+.feed{max-width:470px;margin:0 auto;display:grid;gap:24px}
+.post{background:var(--white);border-radius:28px;overflow:hidden}
+.post.new{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+.ph{display:flex;align-items:center;gap:10px;padding:14px 16px;font-size:14px;line-height:1.25}
+.ph .pdate{margin-left:auto}
+.post .meta{font-size:12px;color:var(--slate)}
+.pimg{position:relative;aspect-ratio:4/5;background:var(--mist);overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.pimg img{width:100%;height:100%;object-fit:cover;display:block;animation:imgin .6s both}
+.bigheart{position:absolute;left:50%;top:50%;font-size:96px;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.35);pointer-events:none;animation:bigpop .85s ease-out forwards}
+.pact{display:flex;align-items:center;gap:6px;padding:8px 14px 0}
+.lk{background:none;border:0;font-size:28px;line-height:1;padding:6px;color:var(--ink);transition:transform .2s}
+.lk.on{color:#e5484d;animation:okpop .4s cubic-bezier(.2,1.5,.4,1)}
+.lk:active{transform:scale(.8)}
+.cap{padding:2px 18px 18px;font-size:15px}
+.fab{position:fixed;right:18px;bottom:calc(70px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--blue);color:#fff;font-size:32px;line-height:1;box-shadow:0 10px 26px rgba(0,113,227,.4);z-index:12;transition:transform .25s}
+.fab:hover{transform:scale(1.08) rotate(90deg)}.fab:active{transform:scale(.94)}
+.pickph{width:100%;aspect-ratio:4/5;max-height:44vh;border:1.5px dashed var(--steel);border-radius:20px;background:var(--mist);display:grid;place-items:center;overflow:hidden;padding:0;color:var(--slate)}
+.pickph img{width:100%;height:100%;object-fit:cover}
+#cmp .card{max-width:420px;max-height:92vh;overflow:auto}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (max-width: 640px) {
   .hero { padding: 44px 0 32px; }
@@ -243,6 +299,8 @@ span.check { cursor: default; }
       <span class="nav-title" id="her-nav"></span>
       <div class="navtabs" role="tablist">
         <button class="pill" role="tab" data-tab="pick" aria-selected="true">Выбор</button>
+        <button class="pill" role="tab" data-tab="date" aria-selected="false">Свидание<i class="bd" hidden></i></button>
+        <button class="pill" role="tab" data-tab="feed" aria-selected="false">Лента</button>
         <button class="pill" role="tab" data-tab="question" aria-selected="false">Вопрос</button>
         <button class="pill" role="tab" data-tab="visited" aria-selected="false">Были</button>
       </div>
@@ -270,6 +328,7 @@ span.check { cursor: default; }
           </button>
         </div>
         <div class="surprise-wrap"><button class="btn outline" type="button" data-kind="any">Сюрприз: выберу сам из всего</button></div>
+        <div class="surprise-wrap" style="margin-top:12px"><button class="btn outline" type="button" data-own>Придумать своё свидание ✎</button></div>
         <label class="avoid"><input type="checkbox" id="avoid" checked> Только там, где ещё не были</label>
         <h2 class="sec">Или выбери квадратик</h2>
         <p class="muted" style="margin:-8px 0 16px">Нажми на любой, и откроется сюрприз.</p>
@@ -287,6 +346,17 @@ span.check { cursor: default; }
       <h2 class="sec">Были</h2><ul class="rows" id="her-vis-done"></ul>
       <h2 class="sec">Ещё впереди</h2><ul class="rows" id="her-vis-todo"></ul>
     </div></div>
+  </div>
+
+  <div data-panel="date" hidden>
+    <div class="hero small"><div class="inner"><h1>Свидание</h1><p>Предложи, согласуй время и оставь комментарий.</p></div></div>
+    <div class="band"><div class="inner"><div id="plan-her"></div></div></div>
+  </div>
+
+  <div data-panel="feed" hidden>
+    <div class="hero small"><div class="inner"><h1>Наша лента</h1><p>Фото с наших свиданий.</p><button class="btn blue" type="button" data-newpost style="margin-top:20px">＋ Новый пост</button></div></div>
+    <div class="band"><div class="inner"><div class="feed" id="feed-her"></div></div></div>
+    <button class="fab" type="button" data-newpost aria-label="Новый пост">＋</button>
   </div>
 
   <div data-panel="question" hidden>
@@ -311,6 +381,8 @@ span.check { cursor: default; }
       <span class="nav-title"><span class="av sm" id="av-him-sm"></span><span id="him-who"></span></span>
       <div class="navtabs" role="tablist">
         <button class="pill" role="tab" data-tab="log" aria-selected="true">Она выбрала</button>
+        <button class="pill" role="tab" data-tab="date" aria-selected="false">Свидание<i class="bd" hidden></i></button>
+        <button class="pill" role="tab" data-tab="feed" aria-selected="false">Лента</button>
         <button class="pill" role="tab" data-tab="list" aria-selected="false">Список</button>
         <button class="pill" role="tab" data-tab="visited" aria-selected="false">Были</button>
         <button class="pill" role="tab" data-tab="profile" aria-selected="false">Профиль</button>
@@ -329,6 +401,17 @@ span.check { cursor: default; }
       <div class="warn" id="mode-warn" hidden></div>
       <ul class="rows" id="log-list"></ul>
     </div></div>
+  </div>
+
+  <div data-panel="date" hidden>
+    <div class="hero small"><div class="inner"><h1>Свидание</h1><p>Предложи, согласуй время и оставь комментарий.</p></div></div>
+    <div class="band"><div class="inner"><div id="plan-him"></div></div></div>
+  </div>
+
+  <div data-panel="feed" hidden>
+    <div class="hero small"><div class="inner"><h1>Наша лента</h1><p>Фото с наших свиданий.</p><button class="btn blue" type="button" data-newpost style="margin-top:20px">＋ Новый пост</button></div></div>
+    <div class="band"><div class="inner"><div class="feed" id="feed-him"></div></div></div>
+    <button class="fab" type="button" data-newpost aria-label="Новый пост">＋</button>
   </div>
 
   <div data-panel="list" hidden>
@@ -404,6 +487,18 @@ span.check { cursor: default; }
   </div>
 </div>
 
+<div class="overlay" id="cmp" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="cmp-t">
+    <h2 id="cmp-t">Новый пост</h2>
+    <button class="pickph" id="cmp-pick" type="button"><span id="cmp-ph">＋ Выбрать фото</span><img id="cmp-prev" alt="" hidden></button>
+    <input type="file" id="cmp-file" accept="image/*" hidden>
+    <label class="flabel" for="cmp-place">Где и что было</label><input type="text" id="cmp-place" maxlength="80" autocomplete="off">
+    <label class="flabel" for="cmp-cap">Подпись</label><input type="text" id="cmp-cap" maxlength="200" autocomplete="off">
+    <div class="err" id="cmp-err" role="alert"></div>
+    <div class="actions"><button class="btn blue" type="button" id="cmp-ok">Опубликовать</button><button class="btn outline" type="button" id="cmp-x">Отмена</button></div>
+  </div>
+</div>
+
 <script>
 (function () {
   var C = window.CONFIG;
@@ -411,7 +506,7 @@ span.check { cursor: default; }
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var uid = function () { return Math.random().toString(36).slice(2, 9); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-  var KIND = { place: 'Место', venue: 'Заведение' };
+  var KIND = { place: 'Место', venue: 'Заведение', custom: 'Своё свидание' };
   var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   var useDb = !!C.firebaseUrl, tgOn = !!(C.tgToken && C.tgChat);
 
@@ -434,16 +529,20 @@ span.check { cursor: default; }
 
   var items = (C.items || []).slice(), visited = {}, choices = [], rolls = [], plan = null, dbOk = false;
 
+  function meta() {
+    var ks = ['items', 'visited', 'profile', 'rolls', 'plan', 'choices'];
+    return Promise.all(ks.map(function (k) { return dbReq(k); })).then(function (r) { var o = {}; ks.forEach(function (k, i) { o[k] = r[i]; }); return o; });
+  }
   function load() {
     if (useDb) {
-      return dbReq('').then(function (all) {
+      return meta().then(function (all) {
         all = all || {};
         if (all.items) items = toArr(all.items).map(function (i) { return { id: i.id, type: i.type === 'venue' ? 'venue' : 'place', name: String(i.name) }; });
         else items = (C.items || []).slice();
         visited = all.visited || {};
         profile = all.profile || {};
         rolls = Object.keys(all.rolls || {}).map(function (k) { return all.rolls[k]; });
-        plan = all.plan || lsGet(LS.plan, null);
+        plan = all.plan || null;
         choices = Object.keys(all.choices || {}).map(function (k) { var c = all.choices[k]; c.key = k; return c; });
         dbOk = true;
       }).catch(function () { dbOk = false; loadLocal(); });
@@ -472,14 +571,10 @@ span.check { cursor: default; }
     if (!tgOn) return;
     fetch('https://api.telegram.org/bot' + C.tgToken + '/sendMessage?chat_id=' + encodeURIComponent(C.tgChat) + '&text=' + encodeURIComponent(text)).catch(function () {});
   }
-  function recordChoice(c) {
-    var local = lsGet(LS.choices, []); c.key = String(c.ts); local.push(c); lsSet(LS.choices, local);
-    plan = { itemId: c.itemId, name: c.name, type: c.type, when: c.when, ts: c.ts }; lsSet(LS.plan, plan);
-    if (useDb) {
-      dbReq('choices', 'POST', { itemId: c.itemId, name: c.name, type: c.type, when: c.when, ts: c.ts }).catch(function () {});
-      dbReq('plan', 'PUT', plan).catch(function () {});
-    }
-    tg('💘 ' + P('herName') + ' выбрала: ' + c.name + ' (' + KIND[c.type] + ')\nКогда: ' + fmtWhen(c.when));
+  function pushChoice(p) {
+    var c = { itemId: p.itemId, name: p.name, type: p.type, when: p.when, ts: p.ts };
+    var l = lsGet(LS.choices, []); c.key = String(c.ts); l.push(c); lsSet(LS.choices, l); choices.push(c);
+    if (useDb) dbReq('choices', 'POST', { itemId: c.itemId, name: c.name, type: c.type, when: c.when, ts: c.ts }).catch(function () {});
   }
   function recordRoll(item, src) {
     var r = { itemId: item.id, name: item.name, type: item.type, ts: Date.now(), src: src };
@@ -524,7 +619,7 @@ span.check { cursor: default; }
     ['landing', 'her', 'him'].forEach(function (n) { $('#s-' + n).hidden = n !== name; });
     $('#secret').hidden = name === 'him';
     window.scrollTo(0, 0);
-    if (name === 'him') startPoll(); else stopPoll();
+    if (name === 'landing') stopPoll(); else startPoll();
   }
   $$('.navtabs').forEach(function (bar) {
     var scope = bar.closest('section');
@@ -586,40 +681,16 @@ span.check { cursor: default; }
     $('#again').addEventListener('click', function () { roll(lastKind); });
     stage.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  function burst() {
+  function burst(host) {
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     for (var i = 0; i < 12; i++) {
       var h = document.createElement('span'); h.className = 'heart'; h.textContent = '♥';
       h.style.left = (8 + Math.random() * 84) + '%'; h.style.animationDelay = (Math.random() * 0.4) + 's';
       h.style.setProperty('--r', (Math.random() * 60 - 30) + 'deg');
-      stage.appendChild(h); (function (el) { setTimeout(function () { el.remove(); }, 2200); })(h);
+      (host || stage).appendChild(h); (function (el) { setTimeout(function () { el.remove(); }, 2200); })(h);
     }
   }
-  function showPlanForm() {
-    var ticketEl = stage.querySelector('.ticket'); var old = ticketEl.querySelector('.actions'); if (old) old.remove();
-    var box = document.createElement('div'); box.className = 'plan';
-    box.innerHTML = '<div class="actions" style="display:block"><label for="when">Когда пойдём?</label><input type="datetime-local" id="when"><div class="err" id="whenErr" role="alert"></div>' +
-      '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px"><button class="btn blue" type="button" id="confirm">Договорились</button><button class="btn outline" type="button" id="back">Выбрать другое</button></div></div>';
-    ticketEl.appendChild(box);
-    $('#back').addEventListener('click', function () { roll(lastKind); });
-    $('#confirm').addEventListener('click', function () {
-      var v = $('#when').value;
-      if (!v) { $('#whenErr').textContent = 'Выбери дату и время.'; return; }
-      recordChoice({ itemId: current.id, name: current.name, type: current.type, when: v, ts: Date.now() });
-      var delivered = useDb || tgOn;
-      var msg = 'Я выбрала: ' + current.name + '. Когда: ' + fmtWhen(v) + ' ♥';
-      box.innerHTML = '<div class="actions" style="display:block"><p class="done-text">Договорились<strong>' + esc(current.name) + '</strong>' + esc(fmtWhen(v)) + '</p>' +
-        '<div class="cd" data-cd="' + esc(v) + '"></div>' +
-        (delivered ? '<p class="muted" style="margin-top:14px">Я уже знаю, что ты выбрала ♥</p>' : '<p class="muted" style="margin-top:14px">Скопируй и отправь мне ♥</p>') +
-        '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:16px"><button class="btn blue" type="button" data-ics>Добавить в календарь</button>' +
-        (delivered ? '' : '<button class="btn outline" type="button" id="copyAns">Скопировать ответ</button>') + '</div></div>';
-      burst(); renderPlan(); updateCountdowns();
-      var cb = $('#copyAns');
-      if (cb) cb.addEventListener('click', function () {
-        if (navigator.clipboard) navigator.clipboard.writeText(msg).then(function () { cb.textContent = 'Скопировано'; });
-      });
-    });
-  }
+  function showPlanForm() { goTab('her', 'date'); openForm({ itemId: current.id, type: current.type, name: current.name }, 'new'); }
   $$('.choice, [data-kind="any"]').forEach(function (b) { b.addEventListener('click', function () { roll(b.dataset.kind); }); });
   $('#avoid').addEventListener('change', function () { updateCounts(); if (!tilesOpen) dealTiles(); });
   function updateCounts() { $('#cnt-place').textContent = plural(pool('place').length); $('#cnt-venue').textContent = plural(pool('venue').length); }
@@ -726,7 +797,7 @@ span.check { cursor: default; }
     $('#add-' + t).addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); $('[data-add="' + t + '"]').click(); } });
   });
   var poll = null;
-  function startPoll() { stopPoll(); poll = setInterval(function () { load().then(renderHim); }, 15000); }
+  function startPoll() { stopPoll(); poll = setInterval(function () { load().then(tick); }, 15000); }
   function stopPoll() { if (poll) clearInterval(poll); poll = null; }
   $('#refresh').addEventListener('click', function () { load().then(function () { renderHim(); applyProfile(); }); });
   $('#exit').addEventListener('click', function () { try { sessionStorage.removeItem('ds3-auth'); } catch (e) {} show('landing'); });
@@ -776,8 +847,8 @@ span.check { cursor: default; }
     function alarm(trigger, text) { return ['BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(text), 'TRIGGER:' + trigger, 'END:VALARM']; }
     var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//date-site//RU', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
       'UID:date-' + pl.ts + '@date-site', 'DTSTAMP:' + icsUtc(new Date()), 'DTSTART:' + icsLocal(start), 'DTEND:' + icsLocal(end),
-      'SUMMARY:' + icsEsc('Свидание: ' + pl.name + ' ♥'), 'LOCATION:' + icsEsc(pl.name),
-      'DESCRIPTION:' + icsEsc('Идём: ' + pl.name + ' (' + KIND[pl.type] + ')')];
+      'SUMMARY:' + icsEsc('Свидание: ' + pl.name + ' ♥'), 'LOCATION:' + icsEsc(pl.place || pl.name),
+      'DESCRIPTION:' + icsEsc(detail(pl))];
     L = L.concat(alarm('-P1D', 'Завтра свидание ♥'), alarm('-PT3H', 'Сегодня свидание! Через 3 часа ♥'), alarm('-PT30M', 'Свидание через 30 минут ♥'));
     L.push('END:VEVENT', 'END:VCALENDAR');
     return L.join('\r\n');
@@ -797,37 +868,241 @@ span.check { cursor: default; }
       (ios ? '<div class="acts" style="margin-top:12px"><button class="btn outline" type="button" data-timer>Запустить таймер</button></div><div class="small muted tm-msg" style="margin-top:8px"></div>'
            : '<p class="small muted">Кнопка запуска таймера появляется на iPhone.</p>') + '</details>';
   }
-  function planCard(pl, canReplan) {
-    return '<div class="kind">' + (isToday(pl.when) ? 'Сегодня ♥' : 'Ближайшее свидание') + '</div>' +
-      '<div class="what">' + esc(pl.name) + '</div><div class="when">' + esc(fmtWhen(pl.when)) + '</div>' +
-      '<div class="cd" data-cd="' + esc(pl.when) + '"></div>' +
-      '<div class="acts"><button class="btn blue" type="button" data-ics>Добавить в календарь</button>' +
-      (canReplan ? '<button class="textlink" type="button" data-replan>Выбрать заново</button>' : '') + '</div>' + helpHtml();
+  /* ---------- свидание: предложение, ответ, время, комментарии ---------- */
+  var form = null, lastRev = -1;
+  function who(m) { return m === 'her' ? P('herName') : (P('himName') || 'Он'); }
+  function ME() { return $('#s-him').hidden ? 'her' : 'him'; }
+  function goTab(sc, tab) { var b = $('[data-tab="' + tab + '"]', $('#s-' + sc)); if (b) b.click(); }
+  function notify(to, text) {
+    if (to === 'him') tg(text);
+    else if (C.ntfyHer) fetch('https://ntfy.sh/' + encodeURIComponent(C.ntfyHer), { method: 'POST', body: text }).catch(function () {});
   }
-  function renderPlan() {
-    var ok = plan && plan.when && (new Date(plan.when).getTime() - Date.now() > -3 * 3600000);
-    var her = $('#plan-banner'), him = $('#him-plan');
-    her.hidden = him.hidden = !ok;
-    if (ok) {
-      var ho = her.querySelector('details'), hi = him.querySelector('details');
-      var hoOpen = ho && ho.open, hiOpen = hi && hi.open;
-      her.innerHTML = planCard(plan, true); him.innerHTML = planCard(plan, false);
-      if (hoOpen) her.querySelector('details').open = true;
-      if (hiOpen) him.querySelector('details').open = true;
-      her.classList.toggle('today', isToday(plan.when)); him.classList.toggle('today', isToday(plan.when));
-    } else { her.innerHTML = ''; him.innerHTML = ''; }
-    updateCountdowns();
+  function pText(p, head) { return head + '\n' + p.name + (p.place && p.place !== p.name ? '\n📍 ' + p.place : '') + '\n🕒 ' + fmtWhen(p.when); }
+  function detail(p) {
+    var c = toArr(p.comments).slice(-1)[0];
+    return 'Что: ' + p.name + (p.place && p.place !== p.name ? '\nГде: ' + p.place : '') + (c ? '\nКомментарий: ' + c.text : '');
+  }
+  function gcal(p) {
+    var s = new Date(p.when), e = new Date(s.getTime() + 2 * 3600000);
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Свидание: ' + p.name + ' ♥') + '&dates=' + icsLocal(s) + '/' + icsLocal(e) +
+      '&details=' + encodeURIComponent(detail(p)) + '&location=' + encodeURIComponent(p.place || p.name) + '&ctz=' + encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }
+  function savePlan(p, msg) {
+    p.rev = ((plan && plan.rev) || 0) + 1; p.lastBy = ME(); plan = p; lsSet(LS.plan, p);
+    if (useDb) dbReq('plan', 'PUT', p).catch(function () {});
+    lastRev = p.rev; lsSet('ds3-seen-' + ME(), p.rev);
+    if (msg) notify(ME() === 'her' ? 'him' : 'her', msg);
+    if (window.Notification && Notification.permission === 'default') { try { Notification.requestPermission(); } catch (e) {} }
+    renderPlan();
+  }
+  function openForm(base, mode) { form = { base: base || {}, mode: mode }; renderPlan(true); }
+  function renderForm(box) {
+    var b = form.base, nw = form.mode === 'new';
+    var what = b.what !== undefined ? b.what : (b.type === 'venue' ? '' : (b.name || ''));
+    var place = b.place !== undefined ? b.place : (b.type === 'venue' ? (b.name || '') : '');
+    box.innerHTML = '<div class="plancard form"><div class="kind">' + (nw ? (b.type ? 'Новое свидание' : 'Своё свидание') : 'Другое время') + '</div>' +
+      (nw ? '<label for="f-what">Что будем делать</label><input type="text" id="f-what" maxlength="80" placeholder="Например, ужин и прогулка" value="' + esc(what) + '">' +
+            '<label for="f-place">Где</label><input type="text" id="f-place" maxlength="80" placeholder="Название или адрес" value="' + esc(place) + '">'
+          : '<div class="what">' + esc(plan.name) + '</div>') +
+      '<label for="f-when">Когда</label><input type="datetime-local" id="f-when" value="' + (nw ? '' : esc(plan.when)) + '">' +
+      '<label for="f-cmt">Комментарий</label><input type="text" id="f-cmt" maxlength="200" placeholder="Например, лучше после работы" autocomplete="off">' +
+      '<div class="err" id="f-err" role="alert"></div><div class="acts"><button class="btn blue" type="button" data-send>Отправить запрос ♥</button><button class="btn outline" type="button" data-fcancel>Отмена</button></div></div>';
+  }
+  function send() {
+    var when = $('#f-when').value, cm = $('#f-cmt').value.trim(), err = $('#f-err'), me = ME(), p, msg;
+    if (!when) { err.textContent = 'Выбери дату и время.'; return; }
+    if (form.mode === 'new') {
+      var what = $('#f-what').value.trim(), place = $('#f-place').value.trim(), b = form.base, ts = Date.now();
+      if (!what && !place) { err.textContent = 'Напиши, что будем делать или где.'; return; }
+      p = { itemId: b.itemId || 'c' + ts, type: b.type || 'custom', what: what, place: place, name: what || place, when: when, ts: ts, status: 'pending', by: me, comments: [] };
+      if (me === 'her') pushChoice(p);
+      msg = pText(p, '💌 ' + who(me) + ' предлагает свидание');
+    } else {
+      p = JSON.parse(JSON.stringify(plan)); p.prevWhen = plan.when; p.when = when; p.status = 'pending';
+      msg = pText(p, '🕒 ' + who(me) + ' просит изменить время (было: ' + fmtWhen(plan.when) + ')');
+    }
+    p.comments = toArr(p.comments);
+    if (cm) { p.comments.push({ by: me, text: cm, ts: Date.now() }); msg += '\n💬 ' + cm; }
+    form = null; savePlan(p, msg + '\nОткрой сайт, там кнопка «Подтвердить»');
+  }
+  function respond(ok) {
+    var me = ME(), p = JSON.parse(JSON.stringify(plan)); p.status = ok ? 'ok' : 'no'; if (ok) delete p.prevWhen;
+    savePlan(p, (ok ? '✅ ' + who(me) + ' подтвердил(а): ' : '❌ ' + who(me) + ' отклонил(а): ') + p.name + (ok ? '\n🕒 ' + fmtWhen(p.when) : ''));
+    if (ok) setTimeout(function () { burst($('#plan-' + me)); }, 80);
+  }
+  function cmtSend() {
+    var i = $('#c-in'), v = i && i.value.trim(); if (!v || !plan) return;
+    var p = JSON.parse(JSON.stringify(plan)); p.comments = toArr(p.comments).concat([{ by: ME(), text: v, ts: Date.now() }]);
+    savePlan(p, '💬 ' + who(ME()) + ': ' + v + '\n(' + plan.name + ')');
+  }
+  function renderPlan(force) {
+    var me = ME(), box = $('#plan-' + me); if (!box) return;
+    if (form) { if (force) renderForm(box); badge(); return; }
+    var ci = $('#c-in'), keep = ci ? ci.value : '', foc = ci && document.activeElement === ci;
+    var live = plan && plan.when && (plan.status === 'no' || new Date(plan.when).getTime() - Date.now() > -3 * 3600000);
+    if (!live) {
+      box.innerHTML = '<div class="plancard"><div class="kind">Пока без планов</div><div class="what">Давай что-нибудь придумаем</div><div class="acts">' +
+        (me === 'her' ? '<button class="btn blue" type="button" data-gopick>Выбрать из списка</button>' : '') + '<button class="btn outline" type="button" data-own>Придумать своё ✎</button></div></div>';
+      badge(); return;
+    }
+    var st = plan.status || 'ok', mine = !plan.lastBy || plan.lastBy === me, other = me === 'her' ? 'him' : 'her';
+    var pill = st === 'pending' ? (mine ? 'Ждём ответ: ' + who(other) : who(plan.lastBy) + ' предлагает. Ответь') : st === 'ok' ? 'Договорились ♥' : 'Отклонено';
+    var acts = st === 'pending' && !mine ? '<button class="btn blue" type="button" data-ok>Подтвердить ♥</button><button class="btn outline" type="button" data-time>Другое время</button><button class="textlink" type="button" data-no>Отклонить</button>'
+      : st === 'pending' ? '<button class="btn outline" type="button" data-time>Изменить время</button><button class="textlink" type="button" data-cancel>Отменить</button>'
+      : st === 'ok' ? '<button class="btn blue" type="button" data-gcal>Google Календарь</button><button class="btn outline" type="button" data-ics>Apple (.ics)</button><button class="btn outline" type="button" data-newpost>📸 В ленту</button><button class="textlink" type="button" data-time>Изменить время</button><button class="textlink" type="button" data-cancel>Отменить</button>'
+      : '<button class="btn blue" type="button" data-own>Предложить другое</button>';
+    var cms = toArr(plan.comments).map(function (c) { return '<div class="cm ' + (c.by === me ? 'me' : '') + '"><span class="who">' + esc(who(c.by)) + ' · ' + esc(fmtTs(c.ts)) + '</span>' + esc(c.text) + '</div>'; }).join('');
+    box.innerHTML = '<div class="plancard ' + st + (isToday(plan.when) ? ' today' : '') + '"><span class="st ' + st + '">' + esc(pill) + '</span>' +
+      '<div class="what">' + esc(plan.name) + '</div>' +
+      (plan.place && plan.place !== plan.name ? '<div class="when">📍 ' + esc(plan.place) + '</div>' : '') +
+      '<div class="when">' + (plan.prevWhen && st === 'pending' ? '<s>' + esc(fmtWhen(plan.prevWhen)) + '</s> → ' : '') + esc(fmtWhen(plan.when)) + '</div>' +
+      (st === 'no' ? '' : '<div class="cd" data-cd="' + esc(plan.when) + '"></div>') +
+      '<div class="acts">' + acts + '</div><div class="cms">' + cms + '</div>' +
+      (st === 'no' ? '' : '<div class="add"><input type="text" id="c-in" maxlength="200" placeholder="Написать комментарий…" autocomplete="off"><button class="btn ink" type="button" data-cmt aria-label="Отправить">›</button></div>') + '</div>';
+    if (keep && $('#c-in')) { $('#c-in').value = keep; if (foc) $('#c-in').focus(); }
+    updateCountdowns(); badge();
+  }
+  function badge() {
+    var me = ME(), un = !!(plan && plan.lastBy && plan.lastBy !== me && (plan.rev || 0) > lsGet('ds3-seen-' + me, 0));
+    $$('.bd').forEach(function (b) { b.hidden = !un; });
+    document.title = (un ? '● ' : '') + document.title.replace(/^● /, '');
+  }
+  function markSeen() { if (plan) lsSet('ds3-seen-' + ME(), plan.rev || 0); badge(); }
+  function toast(text) {
+    var t = document.createElement('div'); t.className = 'toast'; t.textContent = text;
+    t.onclick = function () { goTab(ME(), 'date'); t.remove(); };
+    document.body.appendChild(t);
+    setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 400); }, 6000);
+    return t;
+  }
+  function tick() {
+    var me = ME(), sec = $('#s-' + me);
+    if (me === 'him') renderHim(); else { renderPlan(); applyProfile(); }
+    pollFeed(me);
+    var onTab = !$('[data-panel="date"]', sec).hidden;
+    if (plan && lastRev >= 0 && (plan.rev || 0) > lastRev && plan.lastBy && plan.lastBy !== me) {
+      var what = { pending: 'новое предложение ♥', ok: 'подтвердил(а) свидание ♥', no: 'отклонил(а) свидание' }[plan.status] || 'обновил(а) свидание';
+      if (!onTab) toast(who(plan.lastBy) + ': ' + what);
+      if (window.Notification && Notification.permission === 'granted' && document.hidden) { try { new Notification('Свидание ♥', { body: who(plan.lastBy) + ': ' + what }); } catch (e) {} }
+    }
+    lastRev = plan ? (plan.rev || 0) : 0;
+    if (onTab) markSeen();
   }
   document.addEventListener('click', function (e) {
-    if (e.target.closest('[data-ics]') && plan) downloadIcs(plan);
-    var tm = e.target.closest('[data-timer]');
-    if (tm && plan) {
-      var sec = Math.floor((new Date(plan.when).getTime() - Date.now()) / 1000), note = tm.parentNode.nextElementSibling;
-      if (sec <= 0) note.textContent = 'Свидание уже началось.';
-      else if (sec > 86399) note.textContent = 'Таймер можно запустить в день свидания, когда останется меньше суток.';
-      else { note.textContent = ''; location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent('Свидание таймер') + '&input=text&text=' + sec; }
+    var t = function (a) { return e.target.closest('[' + a + ']'); };
+    if (t('data-ics') && plan) downloadIcs(plan);
+    else if (t('data-gcal') && plan) window.open(gcal(plan), '_blank');
+    else if (t('data-ok')) respond(true);
+    else if (t('data-no')) respond(false);
+    else if (t('data-time')) openForm(null, 'time');
+    else if (t('data-own')) { goTab(ME(), 'date'); openForm({}, 'new'); }
+    else if (t('data-gopick')) goTab('her', 'pick');
+    else if (t('data-send')) send();
+    else if (t('data-fcancel')) { form = null; renderPlan(); }
+    else if (t('data-cancel')) { var nm = plan.name, me = ME(); clearPlan(); notify(me === 'her' ? 'him' : 'her', '❌ ' + who(me) + ' отменил(а) свидание: ' + nm); renderPlan(); }
+    else if (t('data-cmt')) cmtSend();
+    else if (t('data-tab="date"')) setTimeout(markSeen, 0);
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'c-in') { e.preventDefault(); cmtSend(); } });
+
+  /* ---------- лента ---------- */
+  var posts = [], photos = {}, shown = {}, feedSig = '', lastPostTs = -1, tapT = {}, draftImg = null, LSP = 'ds3-posts';
+  function loadPosts() {
+    if (!useDb) { posts = lsGet(LSP, []); posts.forEach(function (p) { if (p.img) photos[p.key] = p.img; }); return Promise.resolve(); }
+    return dbReq('posts').then(function (all) { posts = Object.keys(all || {}).map(function (k) { var p = all[k]; p.key = k; return p; }); }).catch(function () {});
+  }
+  function pollFeed(me) {
+    var open = !$('[data-panel="feed"]', $('#s-' + me)).hidden;
+    loadPosts().then(function () {
+      var mx = posts.reduce(function (a, p) { return Math.max(a, p.ts); }, 0), fresh = posts.some(function (p) { return p.by !== me && p.ts > lastPostTs; });
+      if (lastPostTs >= 0 && fresh && !open) { var t = toast('Новое фото в ленте 📸'); t.onclick = function () { goTab(ME(), 'feed'); t.remove(); }; }
+      lastPostTs = mx; if (open) renderFeed();
+    });
+  }
+  function renderFeed() {
+    var me = ME(), box = $('#feed-' + me); if (!box) return;
+    var list = posts.slice().sort(function (a, b) { return b.ts - a.ts; });
+    var sig = me + list.map(function (p) { return p.key + Object.keys(p.likes || {}).join(''); }).join('|');
+    if (sig === feedSig) return; feedSig = sig;
+    if (!list.length) { box.innerHTML = '<div class="note">Здесь будет ваша лента. Добавь первое фото ♥</div>'; return; }
+    box.innerHTML = list.map(function (p) {
+      var k = esc(p.key), liked = p.likes && p.likes[me], n = Object.keys(p.likes || {}).length, isNew = !shown[p.key]; shown[p.key] = 1;
+      return '<article class="post' + (isNew ? ' new' : '') + '"><header class="ph"><span class="av sm" data-av="' + p.by + '"></span><span><b>' + esc(who(p.by)) + '</b>' + (p.place ? '<br><span class="meta">' + esc(p.place) + '</span>' : '') + '</span><span class="meta pdate">' + esc(fmtTs(p.ts)) + '</span>' +
+        (p.by === me ? '<button class="del" type="button" data-pdel="' + k + '" aria-label="Удалить пост">×</button>' : '') + '</header>' +
+        '<div class="pimg" data-dbl="' + k + '"><img alt="" data-ph="' + k + '"></div>' +
+        '<div class="pact"><button class="lk ' + (liked ? 'on' : '') + '" type="button" data-lk="' + k + '" aria-label="Нравится">' + (liked ? '♥' : '♡') + '</button><span class="meta">' + (n || '') + '</span></div>' +
+        (p.caption ? '<p class="cap"><b>' + esc(who(p.by)) + '</b> ' + esc(p.caption) + '</p>' : '<div style="height:14px"></div>') + '</article>';
+    }).join('');
+    $$('[data-av]', box).forEach(function (a) { avatar(a, photoOf(profile, a.dataset.av === 'her' ? 'herPhoto' : 'himPhoto'), letterOf(who(a.dataset.av), '♥')); });
+    $$('[data-ph]', box).forEach(function (img) {
+      var k = img.dataset.ph; if (photos[k]) { img.src = photos[k]; img.style.animation = 'none'; return; }
+      dbReq('photos/' + k).then(function (d) { if (d) { photos[k] = d; img.src = d; } }).catch(function () {});
+    });
+  }
+  function setLike(key, on, host) {
+    var p = posts.filter(function (x) { return x.key === key; })[0]; if (!p) return; var me = ME(); p.likes = p.likes || {};
+    if (on === 'toggle') on = !p.likes[me];
+    if (host) { var h = document.createElement('span'); h.className = 'bigheart'; h.textContent = '♥'; host.appendChild(h); setTimeout(function () { h.remove(); }, 900); }
+    if (!!p.likes[me] === on) return;
+    if (on) p.likes[me] = 1; else delete p.likes[me];
+    if (useDb) dbReq('posts/' + key + '/likes/' + me, on ? 'PUT' : 'DELETE', on ? 1 : undefined).catch(function () {}); else lsSet(LSP, posts);
+    if (on && p.by !== me) notify(me === 'her' ? 'him' : 'her', '❤️ ' + who(me) + ' оценил(а) твоё фото в ленте');
+    renderFeed();
+  }
+  function delPost(key) {
+    posts = posts.filter(function (x) { return x.key !== key; });
+    if (useDb) { dbReq('posts/' + key, 'DELETE').catch(function () {}); dbReq('photos/' + key, 'DELETE').catch(function () {}); } else lsSet(LSP, posts);
+    feedSig = ''; renderFeed();
+  }
+  function shrink(file, cb) {
+    var fr = new FileReader();
+    fr.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var k = Math.min(1, 1080 / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); cb(cv.toDataURL('image/jpeg', 0.78));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+  function openCmp() {
+    draftImg = null; $('#cmp-prev').hidden = true; $('#cmp-ph').hidden = false; $('#cmp-cap').value = ''; $('#cmp-err').textContent = '';
+    $('#cmp-place').value = (plan && plan.name) || ''; $('#cmp').hidden = false;
+  }
+  function closeCmp() { $('#cmp').hidden = true; }
+  $('#cmp-pick').addEventListener('click', function () { $('#cmp-file').value = ''; $('#cmp-file').click(); });
+  $('#cmp-file').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    shrink(f, function (d) { draftImg = d; $('#cmp-prev').src = d; $('#cmp-prev').hidden = false; $('#cmp-ph').hidden = true; });
+  });
+  $('#cmp-x').addEventListener('click', closeCmp);
+  $('#cmp-ok').addEventListener('click', function () {
+    var err = $('#cmp-err'), btn = $('#cmp-ok'); if (!draftImg) { err.textContent = 'Выбери фото.'; return; }
+    var ts = Date.now(), key = ts.toString(36) + uid(), me = ME();
+    var p = { key: key, by: me, ts: ts, place: $('#cmp-place').value.trim(), caption: $('#cmp-cap').value.trim() };
+    function done() {
+      posts.push(p); photos[key] = draftImg; closeCmp(); btn.disabled = false; btn.textContent = 'Опубликовать';
+      if (!shown) shown = {}; feedSig = ''; goTab(me, 'feed'); renderFeed(); burst($('#feed-' + me));
+      notify(me === 'her' ? 'him' : 'her', '📸 ' + who(me) + ' добавил(а) фото в ленту' + (p.place ? ': ' + p.place : ''));
     }
-    if (e.target.closest('[data-replan]')) { clearPlan(); tg('↩️ ' + P('herName') + ' хочет выбрать заново'); renderPlan(); }
+    btn.disabled = true; btn.textContent = 'Загружаю…'; err.textContent = '';
+    if (!useDb) { p.img = draftImg; var l = lsGet(LSP, []); l.push(p); lsSet(LSP, l); done(); return; }
+    var body = { by: p.by, ts: p.ts, place: p.place, caption: p.caption };
+    dbReq('photos/' + key, 'PUT', draftImg).then(function () { return dbReq('posts/' + key, 'PUT', body); }).then(done)
+      .catch(function () { btn.disabled = false; btn.textContent = 'Опубликовать'; err.textContent = 'Не удалось загрузить. Проверь интернет и правила Firebase.'; });
+  });
+  document.addEventListener('click', function (e) {
+    var el;
+    if (e.target.closest('[data-tab="feed"]')) { feedSig = ''; loadPosts().then(renderFeed); }
+    else if (e.target.closest('[data-newpost]')) openCmp();
+    else if ((el = e.target.closest('[data-pdel]'))) { if (confirm('Удалить пост?')) delPost(el.dataset.pdel); }
+    else if ((el = e.target.closest('[data-lk]'))) setLike(el.dataset.lk, 'toggle');
+    else if ((el = e.target.closest('[data-dbl]'))) {
+      var k = el.dataset.dbl, now = Date.now();
+      if (tapT[k] && now - tapT[k] < 350) { tapT[k] = 0; setLike(k, true, el); } else tapT[k] = now;
+    }
   });
 
   /* ---------- случайные вопросы ---------- */
@@ -941,7 +1216,7 @@ span.check { cursor: default; }
 
   /* ---------- старт ---------- */
   show('landing');
-  load().then(function () { renderHer(); applyProfile(); });
+  load().then(function () { renderHer(); applyProfile(); lastRev = plan ? (plan.rev || 0) : 0; loadPosts().then(function () { lastPostTs = posts.reduce(function (a, p) { return Math.max(a, p.ts); }, 0); }); });
 })();
 </script>
 </body>
