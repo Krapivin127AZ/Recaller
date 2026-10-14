@@ -23,6 +23,7 @@ window.CONFIG = {
   tgToken: '8808003402:AAHt6v1E3XqR5XxIW_L-F56H-WJm1-35zpw',                  // токен Telegram-бота от @BotFather
   tgChat: '874631347',                   // твой chat id
   notifyOpen: true,           // сообщение в Telegram, когда она открыла сайт
+  tgChatHer: '',             // chat id Иры в Telegram (она пишет боту /start, id узнаёт через @userinfobot): ей будут приходить уведомления
   ntfyHer: '',                // по желанию: тема в ntfy.sh, чтобы ей приходили пуш-уведомления (см. ответ в чате)
   notifyRolls: true,          // сообщение в Telegram о каждом выпавшем варианте
 
@@ -567,9 +568,9 @@ span.check { cursor: default; }
     lsSet(LS.visited, visited);
     if (useDb) dbReq('visited/' + id, on ? 'PUT' : 'DELETE', on ? visited[id] : undefined).catch(function () {});
   }
-  function tg(text) {
+  function tg(text, chat) {
     if (!tgOn) return;
-    fetch('https://api.telegram.org/bot' + C.tgToken + '/sendMessage?chat_id=' + encodeURIComponent(C.tgChat) + '&text=' + encodeURIComponent(text)).catch(function () {});
+    fetch('https://api.telegram.org/bot' + C.tgToken + '/sendMessage?chat_id=' + encodeURIComponent(chat || C.tgChat) + '&text=' + encodeURIComponent(text)).catch(function () {});
   }
   function pushChoice(p) {
     var c = { itemId: p.itemId, name: p.name, type: p.type, when: p.when, ts: p.ts };
@@ -875,7 +876,8 @@ span.check { cursor: default; }
   function goTab(sc, tab) { var b = $('[data-tab="' + tab + '"]', $('#s-' + sc)); if (b) b.click(); }
   function notify(to, text) {
     if (to === 'him') tg(text);
-    else if (C.ntfyHer) fetch('https://ntfy.sh/' + encodeURIComponent(C.ntfyHer), { method: 'POST', body: text }).catch(function () {});
+    else if (C.tgChatHer) tg(text, C.tgChatHer);
+    if (to === 'her' && C.ntfyHer) fetch('https://ntfy.sh/' + encodeURIComponent(C.ntfyHer), { method: 'POST', body: text }).catch(function () {});
   }
   function pText(p, head) { return head + '\n' + p.name + (p.place && p.place !== p.name ? '\n📍 ' + p.place : '') + '\n🕒 ' + fmtWhen(p.when); }
   function detail(p) {
@@ -932,11 +934,13 @@ span.check { cursor: default; }
   }
   function cmtSend() {
     var i = $('#c-in'), v = i && i.value.trim(); if (!v || !plan) return;
+    i.value = '';
     var p = JSON.parse(JSON.stringify(plan)); p.comments = toArr(p.comments).concat([{ by: ME(), text: v, ts: Date.now() }]);
     savePlan(p, '💬 ' + who(ME()) + ': ' + v + '\n(' + plan.name + ')');
   }
   function renderPlan(force) {
     var me = ME(), box = $('#plan-' + me); if (!box) return;
+    var ob = $('#plan-' + (me === 'her' ? 'him' : 'her')); if (ob && ob.innerHTML) ob.innerHTML = '';
     if (form) { if (force) renderForm(box); badge(); return; }
     var ci = $('#c-in'), keep = ci ? ci.value : '', foc = ci && document.activeElement === ci;
     var live = plan && plan.when && (plan.status === 'no' || new Date(plan.when).getTime() - Date.now() > -3 * 3600000);
