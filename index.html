@@ -80,19 +80,19 @@ h2 { margin: 0; font-weight: 600; }
 /* controls */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 9999px; border: 1px solid transparent; padding: 12px 24px; font-size: 17px; font-weight: 500; line-height: 1.2; text-decoration: none; transition: background-color .15s, transform .1s; }
 .btn:active { transform: scale(.98); }
-.btn.blue { background: var(--blue); color: var(--white); }
-.btn.blue:hover { background: #0077ed; }
+.btn.blue { background: var(--blue); color: #fff; }
+.btn.blue:hover { filter: brightness(1.1); }
 .btn.outline { background: transparent; border-color: var(--steel); color: var(--ink); }
 .btn.outline:hover { background: var(--ctl); }
-.btn.ink { background: var(--ink); color: var(--white); }
+.btn.ink { background: var(--ink); color: var(--on-ink, #fff); }
 .btn:disabled { opacity: .5; cursor: wait; }
 .pill { display: inline-flex; align-items: center; border-radius: 9999px; font-size: 12px; line-height: 16px; letter-spacing: -.01em; padding: 6px 14px; border: 1px solid var(--steel); background: transparent; color: var(--ink); }
-.pill[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.pill[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink, #fff); }
 .textlink { background: none; border: 0; padding: 4px 0; color: var(--link); font-size: 14px; }
 .textlink:hover { text-decoration: underline; }
 
 /* navigation */
-.localnav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: rgba(255, 255, 255, .8); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--hair); }
+.localnav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--nav, rgba(255, 255, 255, .8)); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--hair); }
 .localnav .inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding-top: 6px; padding-bottom: 6px; flex-wrap: wrap; }
 .nav-title { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 600; letter-spacing: .012em; line-height: 1.21; }
 .navtabs { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -102,7 +102,7 @@ h2 { margin: 0; font-weight: 600; }
 .av { border-radius: 50%; overflow: hidden; display: grid; place-items: center; flex: 0 0 auto; background: var(--mist); color: var(--ink); font-weight: 600; }
 .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .av.sm { width: 32px; height: 32px; font-size: 14px; }
-.av-hero { width: 176px; height: 176px; border-radius: 28px; overflow: hidden; background: var(--mist); display: grid; place-items: center; font-size: 64px; font-weight: 600; color: var(--ink); }
+.av-hero { width: 176px; height: 176px; border-radius: var(--r, 28px); overflow: hidden; background: var(--mist); display: grid; place-items: center; font-size: 64px; font-weight: 600; color: var(--ink); }
 .av-hero img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
 
 /* landing */
@@ -115,7 +115,7 @@ h2 { margin: 0; font-weight: 600; }
 
 /* picker */
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.choice { background: var(--white); border: 0; border-radius: 28px; padding: 28px; min-height: 240px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: left; transition: transform .2s; }
+.choice { background: var(--white); border: 0; border-radius: var(--r, 28px); padding: 28px; min-height: 240px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: left; transition: transform .2s; }
 .choice:hover:not(:disabled) { transform: scale(1.01); }
 .choice:active:not(:disabled) { transform: scale(.985); }
 .choice:disabled { opacity: .55; cursor: wait; }
@@ -128,7 +128,7 @@ h2 { margin: 0; font-weight: 600; }
 .avoid input { width: 18px; height: 18px; accent-color: var(--blue); }
 
 #stage { position: relative; margin-top: 20px; }
-.ticket { background: var(--white); border-radius: 28px; padding: 28px; position: relative; }
+.ticket { background: var(--white); border-radius: var(--r, 28px); padding: 28px; position: relative; }
 .ticket.pop { animation: pop .45s cubic-bezier(.2, 1.3, .4, 1); }
 .kind { color: var(--orange); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: -.01em; }
 .where { font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 10px 0 0; min-height: 2.2em; overflow-wrap: anywhere; }
@@ -138,7 +138,7 @@ h2 { margin: 0; font-weight: 600; }
 .plan .err { color: var(--orange); font-size: 14px; margin-top: 8px; min-height: 1.3em; }
 .done-text { font-size: 17px; }
 .done-text strong { font-weight: 600; font-size: 24px; line-height: 1.2; display: block; margin: 4px 0; }
-.note { background: var(--white); border-radius: 28px; padding: 24px 28px; color: var(--slate); }
+.note { background: var(--white); border-radius: var(--r, 28px); padding: 24px 28px; color: var(--slate); }
 .heart { position: absolute; bottom: 30%; font-size: 22px; color: var(--orange); pointer-events: none; animation: floatUp 1.6s ease-out forwards; z-index: 3; }
 @keyframes floatUp { 0% { transform: translateY(0) scale(.5); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(-190px) scale(1.2) rotate(var(--r, 0deg)); opacity: 0; } }
 @keyframes pop { 0% { transform: scale(.95); } 100% { transform: scale(1); } }
@@ -160,15 +160,15 @@ input:focus, select:focus { border-color: var(--blue); outline: 2px solid var(--
 .del:hover { background: var(--ctl); color: var(--ink); }
 .empty { color: var(--slate); font-size: 14px; padding: 4px 2px; }
 .check { width: 28px; height: 28px; flex: 0 0 auto; border-radius: 50%; border: 1.5px solid var(--steel); background: transparent; display: grid; place-items: center; padding: 0; transition: background-color .15s, border-color .15s; }
-.check svg { width: 16px; height: 16px; opacity: 0; transform: scale(.5); transition: opacity .15s, transform .2s; stroke: var(--white); }
+.check svg { width: 16px; height: 16px; opacity: 0; transform: scale(.5); transition: opacity .15s, transform .2s; stroke: var(--on-ink, #fff); }
 .check[aria-checked="true"] { background: var(--ink); border-color: var(--ink); }
 .check[aria-checked="true"] svg { opacity: 1; transform: scale(1); }
 .row.visited .name { color: var(--slate); text-decoration: line-through; text-decoration-color: var(--steel); }
 span.check { cursor: default; }
-.progress { background: var(--white); border-radius: 28px; padding: 24px 28px; }
+.progress { background: var(--white); border-radius: var(--r, 28px); padding: 24px 28px; }
 .bar { height: 6px; border-radius: 999px; background: var(--ctl); margin-top: 14px; overflow: hidden; }
 .bar > i { display: block; height: 100%; background: var(--ink); border-radius: 999px; transition: width .4s; }
-.rows .log { display: block; background: var(--white); border-radius: 28px; padding: 24px 28px; }
+.rows .log { display: block; background: var(--white); border-radius: var(--r, 28px); padding: 24px 28px; }
 .log .what { font-size: 24px; font-weight: 600; line-height: 1.17; margin: 8px 0 4px; overflow-wrap: anywhere; }
 .log .when { color: var(--slate); font-size: 14px; }
 .log .acts { display: flex; gap: 10px; margin-top: 16px; align-items: center; }
@@ -176,12 +176,12 @@ span.check { cursor: default; }
 
 /* pin */
 .overlay { position: fixed; inset: 0; background: rgba(29, 29, 31, .4); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); display: grid; place-items: center; padding: 20px; z-index: 30; }
-.card { background: var(--white); border-radius: 28px; padding: 28px; width: 100%; max-width: 340px; }
+.card { background: var(--white); border-radius: var(--r, 28px); padding: 28px; width: 100%; max-width: 340px; }
 .card h2 { font-size: 24px; margin-bottom: 14px; }
 .card .err { color: var(--orange); min-height: 1.4em; font-size: 14px; margin-top: 8px; }
 .card .actions { border: 0; padding-top: 0; margin-top: 12px; }
 
-.pcard { background: var(--white); border-radius: 28px; padding: 24px 28px; display: grid; gap: 10px; }
+.pcard { background: var(--white); border-radius: var(--r, 28px); padding: 24px 28px; display: grid; gap: 10px; }
 .prow { display: flex; align-items: center; gap: 20px; margin-bottom: 8px; }
 .av-hero.sm { width: 96px; height: 96px; font-size: 36px; border-radius: 24px; }
 .pbtns { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -191,7 +191,7 @@ span.check { cursor: default; }
 .tile { perspective: 800px; border: 0; background: none; padding: 0; aspect-ratio: 1; cursor: pointer; }
 .tile .in { position: relative; display: block; width: 100%; height: 100%; transition: transform .6s cubic-bezier(.2, .8, .2, 1); transform-style: preserve-3d; }
 .tile.open .in { transform: rotateY(180deg); }
-.tile .f, .tile .b { position: absolute; inset: 0; border-radius: 28px; display: grid; place-items: center; background: var(--white); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.tile .f, .tile .b { position: absolute; inset: 0; border-radius: var(--r, 28px); display: grid; place-items: center; background: var(--white); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .tile .f { font-size: clamp(34px, 10vw, 52px); transition: transform .15s; }
 .tile:hover:not(.open):not(.dim) .f { transform: scale(1.05); }
 .tile:active:not(.open):not(.dim) .f { transform: scale(.96); }
@@ -200,15 +200,15 @@ span.check { cursor: default; }
 .tile .n { display: block; font-size: 13px; line-height: 1.2; font-weight: 600; overflow-wrap: anywhere; }
 .tile.dim { opacity: .4; pointer-events: none; transition: opacity .3s; }
 .tile.open { cursor: default; }
-.plancard { background: var(--white); border-radius: 28px; padding: 24px 28px; margin-bottom: 20px; }
+.plancard { background: var(--white); border-radius: var(--r, 28px); padding: 24px 28px; margin-bottom: 20px; }
 .plancard.today { outline: 2px solid var(--orange); }
 .plancard .what { font-size: 24px; font-weight: 600; line-height: 1.17; margin: 8px 0 4px; overflow-wrap: anywhere; }
 .plancard .when { color: var(--slate); font-size: 14px; }
 .plancard .acts { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 18px; }
 .cd { font-size: clamp(24px, 6vw, 32px); font-weight: 600; line-height: 1.1; margin-top: 14px; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
-.pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--white); }
-.qcard { background: var(--white); border-radius: 28px; padding: 32px 28px; min-height: 220px; display: flex; flex-direction: column; justify-content: center; }
+.pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink, #fff); }
+.qcard { background: var(--white); border-radius: var(--r, 28px); padding: 32px 28px; min-height: 220px; display: flex; flex-direction: column; justify-content: center; }
 .qtext { font-size: clamp(24px, 5.5vw, 32px); font-weight: 600; line-height: 1.2; margin: 12px 0 0; overflow-wrap: anywhere; }
 .rolled { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hair); font-size: 14px; }
 .rl-title { font-weight: 600; margin-bottom: 6px; }
@@ -237,7 +237,7 @@ span.check { cursor: default; }
 .pill{position:relative}
 .bd{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e5484d;margin-left:7px;vertical-align:middle;animation:pop .4s cubic-bezier(.2,1.6,.4,1),pulse 1.6s 1s infinite}
 #plan-her,#plan-him{position:relative}
-.plancard.pending{background:linear-gradient(110deg,#fff 40%,#fff1e8 50%,#fff 60%) 0 0/250% 100%;animation:shimmer 3.2s linear infinite}
+.plancard.pending{background:linear-gradient(110deg,var(--white) 40%,color-mix(in srgb,var(--orange) 12%,var(--white)) 50%,var(--white) 60%) 0 0/250% 100%;animation:shimmer 3.2s linear infinite}
 .plancard.ok{outline:2px solid #188038}
 .plancard.ok .st{animation:okpop .5s cubic-bezier(.2,1.2,.4,1)}
 .plancard label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
@@ -247,16 +247,16 @@ span.check { cursor: default; }
 .st.ok{background:#e6f4ea;color:#188038}.st.no{color:var(--slate)}
 .cms{display:grid;gap:8px;margin-top:16px}
 .cm{justify-self:start;background:var(--mist);border-radius:18px 18px 18px 6px;padding:10px 14px;font-size:14px;max-width:85%;overflow-wrap:anywhere;animation:rise .35s both}
-.cm.me{justify-self:end;background:var(--ink);color:#fff;border-radius:18px 18px 6px 18px}
+.cm.me{justify-self:end;background:var(--ink);color:var(--on-ink,#fff);border-radius:18px 18px 6px 18px}
 .cm .who{display:block;font-size:11px;opacity:.65;margin-bottom:2px}
-.toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:40;background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);animation:slideDown .5s cubic-bezier(.2,1.2,.4,1) both;cursor:pointer;max-width:90vw}
+.toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--on-ink,#fff);padding:12px 20px;border-radius:999px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);animation:slideDown .5s cubic-bezier(.2,1.2,.4,1) both;cursor:pointer;max-width:90vw}
 .toast.out{opacity:0;transition:opacity .4s}
 
 /* лента */
 @keyframes bigpop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}30%{transform:translate(-50%,-50%) scale(1.25);opacity:1}100%{transform:translate(-50%,-75%) scale(1);opacity:0}}
 @keyframes imgin{from{opacity:0;filter:blur(14px)}to{opacity:1;filter:none}}
 .feed{max-width:470px;margin:0 auto;display:grid;gap:24px}
-.post{background:var(--white);border-radius:28px;overflow:hidden}
+.post{background:var(--white);border-radius:var(--r,28px);overflow:hidden}
 .post.new{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
 .ph{display:flex;align-items:center;gap:10px;padding:14px 16px;font-size:14px;line-height:1.25}
 .ph .pdate{margin-left:auto}
@@ -274,6 +274,19 @@ span.check { cursor: default; }
 .pickph{width:100%;aspect-ratio:4/5;max-height:44vh;border:1.5px dashed var(--steel);border-radius:20px;background:var(--mist);display:grid;place-items:center;overflow:hidden;padding:0;color:var(--slate)}
 .pickph img{width:100%;height:100%;object-fit:cover}
 #cmp .card{max-width:420px;max-height:92vh;overflow:auto}
+
+/* настройки */
+.sgrp{background:var(--white);border-radius:var(--r,28px);padding:20px 24px;display:grid;gap:14px;margin-bottom:20px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:15px}
+.srow.col{display:grid;gap:6px}
+.srow select{width:auto;min-width:140px}
+.srow input[type=checkbox]{width:22px;height:22px;accent-color:var(--blue)}
+.srow input[type=range]{width:150px;accent-color:var(--blue)}
+.srow input[type=color]{width:46px;height:34px;border:1px solid var(--hair);border-radius:10px;padding:2px;background:none}
+.sws{display:flex;gap:12px;flex-wrap:wrap}
+.sw{width:54px;height:54px;border-radius:50%;border:3px solid var(--hair);padding:0;transition:transform .2s}
+.sw:hover{transform:scale(1.08)}.sw.on{border-color:var(--ink);transform:scale(1.1)}
+body.noanim *,body.noanim *::before,body.noanim *::after{animation:none!important;transition:none!important}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (max-width: 640px) {
   .hero { padding: 44px 0 32px; }
@@ -386,6 +399,7 @@ span.check { cursor: default; }
         <button class="pill" role="tab" data-tab="feed" aria-selected="false">Лента</button>
         <button class="pill" role="tab" data-tab="list" aria-selected="false">Список</button>
         <button class="pill" role="tab" data-tab="visited" aria-selected="false">Были</button>
+        <button class="pill" role="tab" data-tab="settings" aria-selected="false">Настройки</button>
         <button class="pill" role="tab" data-tab="profile" aria-selected="false">Профиль</button>
       </div>
     </div>
@@ -434,6 +448,11 @@ span.check { cursor: default; }
     </div></div>
   </div>
 
+  <div data-panel="settings" hidden>
+    <div class="hero small"><div class="inner"><h1>Настройки сайта</h1><p>Всё, что видит и как работает сайт. Изменения применяются сразу.</p></div></div>
+    <div class="band"><div class="inner"><div id="set-box"></div><div class="muted small" id="set-msg" role="status" style="text-align:center"></div></div></div>
+  </div>
+
   <div data-panel="profile" hidden>
     <div class="hero small"><div class="inner"><h1>Профиль</h1><p>Здесь можно поменять, что видит Ира: имя, фото и приветствие.</p></div></div>
     <div class="band"><div class="inner">
@@ -450,6 +469,11 @@ span.check { cursor: default; }
         <input type="text" id="pf-her-name" maxlength="30" autocomplete="off">
         <label class="flabel" for="pf-greet">Приветствие на странице выбора</label>
         <input type="text" id="pf-greet" maxlength="120" autocomplete="off">
+        <label class="flabel" for="pf-her-tg">Уведомления Иры: Telegram chat id</label>
+        <input type="text" id="pf-her-tg" maxlength="30" inputmode="numeric" autocomplete="off" placeholder="Например, 123456789">
+        <label class="flabel" for="pf-her-ntfy">Или тема в ntfy.sh (по желанию)</label>
+        <input type="text" id="pf-her-ntfy" maxlength="40" autocomplete="off">
+        <div><button class="btn outline" type="button" id="pf-test" style="margin-top:8px">Отправить тест Ире</button></div>
       </div>
 
       <h2 class="sec">Ты</h2>
@@ -528,10 +552,11 @@ span.check { cursor: default; }
   }
   function toArr(x) { return Array.isArray(x) ? x.filter(Boolean) : Object.keys(x || {}).map(function (k) { return x[k]; }); }
 
+  var settings = {}, setDirty = false;
   var items = (C.items || []).slice(), visited = {}, choices = [], rolls = [], plan = null, dbOk = false;
 
   function meta() {
-    var ks = ['items', 'visited', 'profile', 'rolls', 'plan', 'choices'];
+    var ks = ['items', 'visited', 'profile', 'rolls', 'plan', 'choices', 'settings'];
     return Promise.all(ks.map(function (k) { return dbReq(k); })).then(function (r) { var o = {}; ks.forEach(function (k, i) { o[k] = r[i]; }); return o; });
   }
   function load() {
@@ -545,7 +570,8 @@ span.check { cursor: default; }
         rolls = Object.keys(all.rolls || {}).map(function (k) { return all.rolls[k]; });
         plan = all.plan || null;
         choices = Object.keys(all.choices || {}).map(function (k) { var c = all.choices[k]; c.key = k; return c; });
-        dbOk = true;
+        if (!setDirty) settings = all.settings || {};
+        dbOk = true; applySettings();
       }).catch(function () { dbOk = false; loadLocal(); });
     }
     loadLocal();
@@ -558,6 +584,8 @@ span.check { cursor: default; }
     rolls = lsGet(LS.rolls, []);
     plan = lsGet(LS.plan, null);
     choices = lsGet(LS.choices, []);
+    if (!setDirty) settings = lsGet('ds3-settings', {});
+    applySettings();
   }
   function saveItems() {
     lsSet(LS.items, items);
@@ -581,7 +609,7 @@ span.check { cursor: default; }
     var r = { itemId: item.id, name: item.name, type: item.type, ts: Date.now(), src: src };
     var local = lsGet(LS.rolls, []); local.push(r); lsSet(LS.rolls, local.slice(-200));
     if (useDb) dbReq('rolls', 'POST', r).catch(function () {});
-    if (C.notifyRolls) tg('🎲 ' + P('herName') + ': выпало «' + item.name + '» (' + KIND[item.type] + ')');
+    if (S('notifyRolls')) tg('🎲 ' + P('herName') + ': выпало «' + item.name + '» (' + KIND[item.type] + ')');
   }
   function clearPlan() {
     plan = null; try { localStorage.removeItem(LS.plan); } catch (e) {}
@@ -611,7 +639,7 @@ span.check { cursor: default; }
     $('#her-nav').textContent = hn + ' ♥';
     $('#her-greet').textContent = g; $('#her-greet').hidden = !g;
     $('#him-who').textContent = mn ? 'Привет, ' + mn : 'Твоя страница';
-    document.title = 'Для ' + hn.replace(/а$/, 'ы') + ' ♥';
+    document.title = S('siteTitle', '') || ('Для ' + hn.replace(/а$/, 'ы') + ' ♥');
   }
   applyProfile();
 
@@ -636,7 +664,7 @@ span.check { cursor: default; }
     show('her'); renderHer();
     var isHim = false, opened = false;
     try { isHim = sessionStorage.getItem('ds3-auth') === '1'; opened = sessionStorage.getItem('ds3-opened') === '1'; } catch (e) {}
-    if (C.notifyOpen && !isHim && !opened) { try { sessionStorage.setItem('ds3-opened', '1'); } catch (e) {} tg('👀 ' + P('herName') + ' открыла сайт'); }
+    if (S('notifyOpen') && !isHim && !opened) { try { sessionStorage.setItem('ds3-opened', '1'); } catch (e) {} tg('👀 ' + P('herName') + ' открыла сайт'); }
   });
 
   /* ---------- её выбор ---------- */
@@ -685,7 +713,7 @@ span.check { cursor: default; }
   function burst(host) {
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     for (var i = 0; i < 12; i++) {
-      var h = document.createElement('span'); h.className = 'heart'; h.textContent = '♥';
+      var h = document.createElement('span'); h.className = 'heart'; h.textContent = S('heart');
       h.style.left = (8 + Math.random() * 84) + '%'; h.style.animationDelay = (Math.random() * 0.4) + 's';
       h.style.setProperty('--r', (Math.random() * 60 - 30) + 'deg');
       (host || stage).appendChild(h); (function (el) { setTimeout(function () { el.remove(); }, 2200); })(h);
@@ -798,7 +826,7 @@ span.check { cursor: default; }
     $('#add-' + t).addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); $('[data-add="' + t + '"]').click(); } });
   });
   var poll = null;
-  function startPoll() { stopPoll(); poll = setInterval(function () { load().then(tick); }, 15000); }
+  function startPoll() { stopPoll(); poll = setInterval(function () { load().then(tick); }, S('poll') * 1000); }
   function stopPoll() { if (poll) clearInterval(poll); poll = null; }
   $('#refresh').addEventListener('click', function () { load().then(function () { renderHim(); applyProfile(); }); });
   $('#exit').addEventListener('click', function () { try { sessionStorage.removeItem('ds3-auth'); } catch (e) {} show('landing'); });
@@ -844,7 +872,7 @@ span.check { cursor: default; }
   function icsUtc(d) { return d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) + 'T' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + pad2(d.getUTCSeconds()) + 'Z'; }
   function icsEsc(t) { return String(t).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n'); }
   function makeIcs(pl) {
-    var start = new Date(pl.when), end = new Date(start.getTime() + 2 * 3600000);
+    var start = new Date(pl.when), end = new Date(start.getTime() + S('dur') * 3600000);
     function alarm(trigger, text) { return ['BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(text), 'TRIGGER:' + trigger, 'END:VALARM']; }
     var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//date-site//RU', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
       'UID:date-' + pl.ts + '@date-site', 'DTSTAMP:' + icsUtc(new Date()), 'DTSTART:' + icsLocal(start), 'DTEND:' + icsLocal(end),
@@ -876,8 +904,8 @@ span.check { cursor: default; }
   function goTab(sc, tab) { var b = $('[data-tab="' + tab + '"]', $('#s-' + sc)); if (b) b.click(); }
   function notify(to, text) {
     if (to === 'him') tg(text);
-    else if (C.tgChatHer) tg(text, C.tgChatHer);
-    if (to === 'her' && C.ntfyHer) fetch('https://ntfy.sh/' + encodeURIComponent(C.ntfyHer), { method: 'POST', body: text }).catch(function () {});
+    else if (P('tgChatHer')) tg(text, P('tgChatHer'));
+    if (to === 'her' && P('ntfyHer')) fetch('https://ntfy.sh/' + encodeURIComponent(P('ntfyHer')), { method: 'POST', body: text }).catch(function () {});
   }
   function pText(p, head) { return head + '\n' + p.name + (p.place && p.place !== p.name ? '\n📍 ' + p.place : '') + '\n🕒 ' + fmtWhen(p.when); }
   function detail(p) {
@@ -885,7 +913,7 @@ span.check { cursor: default; }
     return 'Что: ' + p.name + (p.place && p.place !== p.name ? '\nГде: ' + p.place : '') + (c ? '\nКомментарий: ' + c.text : '');
   }
   function gcal(p) {
-    var s = new Date(p.when), e = new Date(s.getTime() + 2 * 3600000);
+    var s = new Date(p.when), e = new Date(s.getTime() + S('dur') * 3600000);
     return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Свидание: ' + p.name + ' ♥') + '&dates=' + icsLocal(s) + '/' + icsLocal(e) +
       '&details=' + encodeURIComponent(detail(p)) + '&location=' + encodeURIComponent(p.place || p.name) + '&ctz=' + encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }
@@ -916,7 +944,7 @@ span.check { cursor: default; }
     if (form.mode === 'new') {
       var what = $('#f-what').value.trim(), place = $('#f-place').value.trim(), b = form.base, ts = Date.now();
       if (!what && !place) { err.textContent = 'Напиши, что будем делать или где.'; return; }
-      p = { itemId: b.itemId || 'c' + ts, type: b.type || 'custom', what: what, place: place, name: what || place, when: when, ts: ts, status: 'pending', by: me, comments: [] };
+      p = { itemId: b.itemId || 'c' + ts, type: b.type || 'custom', what: what, place: place, name: what || place, when: when, ts: ts, status: S('needConfirm') ? 'pending' : 'ok', by: me, comments: [] };
       if (me === 'her') pushChoice(p);
       msg = pText(p, '💌 ' + who(me) + ' предлагает свидание');
     } else {
@@ -1109,6 +1137,96 @@ span.check { cursor: default; }
     }
   });
 
+  /* ---------- настройки сайта (для админа) ---------- */
+  var THEMES = {
+    classic: { name: 'Классика', accent: '#0071e3', label: '#b64400', bg: '#f5f5f7', card: '#ffffff', ink: '#1d1d1f' },
+    rose: { name: 'Роза', accent: '#d6336c', label: '#c2255c', bg: '#fff0f4', card: '#ffffff', ink: '#2b1a20' },
+    sunset: { name: 'Закат', accent: '#f76707', label: '#c92a2a', bg: '#fff4e6', card: '#fffaf5', ink: '#2b1d12' },
+    forest: { name: 'Лес', accent: '#2f9e44', label: '#2b8a3e', bg: '#ebf5ec', card: '#ffffff', ink: '#14231a' },
+    lilac: { name: 'Сирень', accent: '#7048e8', label: '#5f3dc4', bg: '#f3f0ff', card: '#ffffff', ink: '#1e1733' },
+    night: { name: 'Ночь', accent: '#4dabf7', label: '#ffa94d', bg: '#101014', card: '#1c1c22', ink: '#f1f1f4' }
+  };
+  var FONTS = { sys: '"SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif', serif: 'Georgia, "Times New Roman", serif', round: 'ui-rounded, "SF Pro Rounded", "Nunito", "Trebuchet MS", sans-serif', hand: '"Bradley Hand", "Segoe Print", "Comic Sans MS", cursive' };
+  var DEF = { theme: 'classic', font: 'sys', radius: 28, anim: true, heart: '♥', needConfirm: true, dur: 2, poll: 15, notifyOpen: !!C.notifyOpen, notifyRolls: !!C.notifyRolls, show_question: true, show_visited: true, show_feed: true, show_tiles: true, show_surprise: true, show_own: true };
+  function S(k, d) { var v = settings[k]; if (v !== undefined && v !== '') return v; return d !== undefined ? d : DEF[k]; }
+  function colors() { var th = THEMES[S('theme')] || THEMES.classic, c = {}; ['accent', 'label', 'bg', 'card', 'ink'].forEach(function (k) { c[k] = S('c_' + k, '') || th[k]; }); return c; }
+  function lum(h) { var n = parseInt(h.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; }
+  function applySettings() {
+    var c = colors(), dark = lum(c.card) < 0.45, r = document.documentElement.style, her = $('#s-her');
+    function set(k, v) { r.setProperty(k, v); }
+    set('--blue', c.accent); set('--link', c.accent); set('--orange', c.label); set('--mist', c.bg); set('--white', c.card); set('--ink', c.ink);
+    set('--on-ink', dark ? '#16161a' : '#ffffff'); set('--hair', dark ? '#3a3a44' : '#d6d6d6'); set('--ctl', dark ? '#2c2c34' : '#e6e6e8');
+    set('--slate', dark ? '#a1a1aa' : '#707070'); set('--steel', dark ? '#8b8b95' : '#86868b'); set('--nav', dark ? 'rgba(28,28,34,.8)' : 'rgba(255,255,255,.8)');
+    set('--r', S('radius') + 'px'); set('--font', FONTS[S('font')] || FONTS.sys); r.colorScheme = dark ? 'dark' : 'light';
+    document.body.classList.toggle('noanim', S('anim') === false);
+    $$('.hrt').forEach(function (h) { h.textContent = S('heart'); });
+    $('[data-panel="pick"] h1', her).textContent = S('pickTitle', '') || 'Куда пойдём?';
+    $('[data-panel="feed"] h1', her).textContent = S('feedTitle', '') || 'Наша лента';
+    ['question', 'visited', 'feed'].forEach(function (k) { var b = $('[data-tab="' + k + '"]', her); if (b) b.hidden = S('show_' + k) === false; });
+    var tl = $('#tiles'), off = S('show_tiles') === false; if (tl) [tl, tl.previousElementSibling, tl.previousElementSibling.previousElementSibling, tl.nextElementSibling].forEach(function (e) { if (e) e.hidden = off; });
+    var sp = $('[data-kind="any"]'); if (sp) sp.parentNode.hidden = S('show_surprise') === false;
+    var ow = $('[data-panel="pick"] [data-own]', her); if (ow) ow.parentNode.hidden = S('show_own') === false;
+    if (S('siteTitle', '')) document.title = S('siteTitle');
+  }
+  var GROUPS = [
+    ['Вид', [['font', 'select', 'Шрифт', [['sys', 'Системный'], ['serif', 'С засечками'], ['round', 'Скруглённый'], ['hand', 'Рукописный']]], ['radius', 'range', 'Скругление углов', [0, 40]], ['anim', 'check', 'Анимации'], ['heart', 'select', 'Значок сердечек', [['♥', '♥'], ['🌸', '🌸'], ['⭐', '⭐'], ['💫', '💫'], ['🍀', '🍀']]]]],
+    ['Свои цвета', [['c_accent', 'color', 'Кнопки и акцент'], ['c_label', 'color', 'Подписи'], ['c_bg', 'color', 'Фон'], ['c_card', 'color', 'Карточки'], ['c_ink', 'color', 'Текст']]],
+    ['Тексты', [['siteTitle', 'text', 'Название вкладки браузера'], ['pickTitle', 'text', 'Заголовок страницы выбора'], ['feedTitle', 'text', 'Заголовок ленты']]],
+    ['Что видит Ира', [['show_question', 'check', 'Вкладка «Вопрос»'], ['show_visited', 'check', 'Вкладка «Были»'], ['show_feed', 'check', 'Вкладка «Лента»'], ['show_tiles', 'check', 'Квадратики с сюрпризом'], ['show_surprise', 'check', 'Кнопка «Сюрприз»'], ['show_own', 'check', 'Кнопка «Придумать своё»']]],
+    ['Свидания', [['needConfirm', 'check', 'Нужно подтверждение партнёра'], ['dur', 'range', 'Длительность в календаре, ч', [1, 8]], ['poll', 'select', 'Обновление данных', [[5, 'каждые 5 сек'], [15, 'каждые 15 сек'], [30, 'каждые 30 сек'], [60, 'раз в минуту']]]]],
+    ['Уведомления тебе', [['notifyOpen', 'check', 'Когда Ира открыла сайт'], ['notifyRolls', 'check', 'О каждом выпавшем варианте']]]
+  ];
+  function setRow(f, c) {
+    var k = f[0], t = f[1], lab = esc(f[2]), v = t === 'color' ? c[k.slice(2)] : S(k, t === 'text' ? '' : undefined);
+    if (t === 'check') return '<label class="srow"><span>' + lab + '</span><input type="checkbox" data-s="' + k + '"' + (v ? ' checked' : '') + '></label>';
+    if (t === 'color') return '<label class="srow"><span>' + lab + '</span><input type="color" data-s="' + k + '" value="' + v + '"></label>';
+    if (t === 'range') return '<label class="srow"><span>' + lab + ' <b data-val="' + k + '">' + v + '</b></span><input type="range" min="' + f[3][0] + '" max="' + f[3][1] + '" data-s="' + k + '" value="' + v + '"></label>';
+    if (t === 'select') return '<label class="srow"><span>' + lab + '</span><select data-s="' + k + '">' + f[3].map(function (o) { return '<option value="' + o[0] + '"' + (String(o[0]) === String(v) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label>';
+    return '<label class="srow col"><span>' + lab + '</span><input type="text" data-s="' + k + '" maxlength="60" value="' + esc(v) + '"></label>';
+  }
+  function renderSettings() {
+    var c = colors(), cur = S('theme');
+    $('#set-box').innerHTML = '<div class="sgrp"><h2 class="sec" style="margin:0">Тема</h2><div class="sws">' + Object.keys(THEMES).map(function (k) { var t = THEMES[k]; return '<button type="button" class="sw' + (k === cur ? ' on' : '') + '" data-theme="' + k + '" title="' + t.name + '" aria-label="Тема ' + t.name + '" style="background:linear-gradient(135deg,' + t.card + ' 50%,' + t.accent + ' 50%)"></button>'; }).join('') + '</div></div>' +
+      GROUPS.map(function (g) { return '<div class="sgrp"><h2 class="sec" style="margin:0">' + g[0] + '</h2>' + g[1].map(function (f) { return setRow(f, c); }).join('') + '</div>'; }).join('') +
+      '<div class="sgrp"><h2 class="sec" style="margin:0">Сервис</h2><div class="actions" style="border:0;padding:0;margin:0"><button class="btn outline" type="button" data-act="test-her">Тест уведомления Ире</button><button class="btn outline" type="button" data-act="test-me">Тест мне</button><button class="btn outline" type="button" data-act="export">Скачать копию данных</button><button class="textlink" type="button" data-act="reset">Сбросить настройки</button></div><p class="muted small">Телеграм Иры вписывается в «Профиль».</p></div>';
+  }
+  var saveT = null;
+  function smsg(t) { $('#set-msg').textContent = t; }
+  function queueSave() {
+    clearTimeout(saveT); setDirty = true;
+    saveT = setTimeout(function () {
+      lsSet('ds3-settings', settings);
+      if (!useDb) { setDirty = false; smsg('Сохранено на этом устройстве.'); return; }
+      dbReq('settings', 'PUT', settings).then(function () { setDirty = false; smsg('Сохранено ✓'); if (poll) startPoll(); }).catch(function () { smsg('Не удалось сохранить в базу. Проверь правила Firebase.'); });
+    }, 600);
+  }
+  function onSet(e) {
+    var el = e.target.closest('[data-s]'); if (!el) return;
+    var v = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : (el.tagName === 'SELECT' && !isNaN(el.value) && el.value !== '') ? +el.value : el.value;
+    settings[el.dataset.s] = v;
+    var b = $('[data-val="' + el.dataset.s + '"]'); if (b) b.textContent = v;
+    applySettings(); queueSave();
+  }
+  $('#set-box').addEventListener('input', onSet); $('#set-box').addEventListener('change', onSet);
+  document.addEventListener('click', function (e) {
+    var el;
+    if (e.target.closest('[data-tab="settings"]')) renderSettings();
+    else if ((el = e.target.closest('[data-theme]'))) {
+      ['accent', 'label', 'bg', 'card', 'ink'].forEach(function (k) { delete settings['c_' + k]; });
+      settings.theme = el.dataset.theme; applySettings(); renderSettings(); queueSave();
+    } else if ((el = e.target.closest('[data-act]'))) {
+      var a = el.dataset.act;
+      if (a === 'test-her') { notify('her', '🔔 Тест: уведомления для ' + P('herName') + ' работают ♥'); smsg(P('tgChatHer') || P('ntfyHer') ? 'Тест отправлен Ире.' : 'Сначала впиши chat id Иры в «Профиль».'); }
+      else if (a === 'test-me') { tg('🔔 Тест: уведомления тебе работают ♥'); smsg(tgOn ? 'Тест отправлен тебе.' : 'Telegram не настроен в CONFIG.'); }
+      else if (a === 'reset') { if (confirm('Сбросить все настройки внешнего вида и поведения?')) { settings = {}; applySettings(); renderSettings(); queueSave(); } }
+      else if (a === 'export') {
+        var d = { items: items, visited: visited, profile: profile, rolls: rolls, plan: plan, choices: choices, settings: settings, posts: posts.map(function (q) { var o = {}; Object.keys(q).forEach(function (k) { if (k !== 'img') o[k] = q[k]; }); return o; }) };
+        var u = URL.createObjectURL(new Blob([JSON.stringify(d, null, 1)], { type: 'application/json' })), l = document.createElement('a');
+        l.href = u; l.download = 'svidanie-backup.json'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 3000);
+      }
+    }
+  });
+
   /* ---------- случайные вопросы ---------- */
   var Q = {
     light: [
@@ -1194,11 +1312,20 @@ span.check { cursor: default; }
     $('#pf-her-name').value = P('herName');
     $('#pf-greet').value = P('greeting');
     $('#pf-him-name').value = P('himName');
+    $('#pf-her-tg').value = P('tgChatHer'); $('#pf-her-ntfy').value = P('ntfyHer');
     $('#pf-status').textContent = '';
     profilePreview();
   }
   $('#pf-her-name').addEventListener('input', function (e) { draft.herName = e.target.value.trim(); });
   $('#pf-greet').addEventListener('input', function (e) { draft.greeting = e.target.value.trim(); });
+  $('#pf-her-tg').addEventListener('input', function (e) { draft.tgChatHer = e.target.value.trim(); });
+  $('#pf-her-ntfy').addEventListener('input', function (e) { draft.ntfyHer = e.target.value.trim(); });
+  $('#pf-test').addEventListener('click', function () {
+    var chat = draft.tgChatHer || P('tgChatHer'), st = $('#pf-status');
+    if (chat && tgOn) { tg('🔔 Тест: уведомления для ' + (draft.herName || P('herName')) + ' работают ♥', chat); st.textContent = 'Тест отправлен в Telegram.'; }
+    else if (draft.ntfyHer || P('ntfyHer')) { fetch('https://ntfy.sh/' + encodeURIComponent(draft.ntfyHer || P('ntfyHer')), { method: 'POST', body: '🔔 Тест уведомления ♥' }).catch(function () {}); st.textContent = 'Тест отправлен в ntfy.'; }
+    else st.textContent = 'Впиши chat id или тему ntfy.';
+  });
   $('#pf-him-name').addEventListener('input', function (e) { draft.himName = e.target.value.trim(); });
   [['her', 'herPhoto'], ['him', 'himPhoto']].forEach(function (a) {
     $('#pf-' + a[0] + '-pick').addEventListener('click', function () { pickKey = a[1]; $('#pf-file').value = ''; $('#pf-file').click(); });
