@@ -268,7 +268,11 @@ span.check { cursor: default; }
 .lk{background:none;border:0;font-size:28px;line-height:1;padding:6px;color:var(--ink);transition:transform .2s}
 .lk.on{color:#e5484d;animation:okpop .4s cubic-bezier(.2,1.5,.4,1)}
 .lk:active{transform:scale(.8)}
-.cap{padding:2px 18px 18px;font-size:15px}
+.cap{padding:2px 18px 18px;font-size:15px;overflow-wrap:anywhere}
+.pact .pdate{margin-left:auto;padding-right:6px}
+.pimg video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.pdel{position:absolute;top:10px;right:10px;z-index:2;width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:22px;line-height:1;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.pickph video{width:100%;height:100%;object-fit:cover}
 .fab{position:fixed;right:18px;bottom:calc(70px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--blue);color:#fff;font-size:32px;line-height:1;box-shadow:0 10px 26px rgba(0,113,227,.4);z-index:12;transition:transform .25s}
 .fab:hover{transform:scale(1.08) rotate(90deg)}.fab:active{transform:scale(.94)}
 .pickph{width:100%;aspect-ratio:4/5;max-height:44vh;border:1.5px dashed var(--steel);border-radius:20px;background:var(--mist);display:grid;place-items:center;overflow:hidden;padding:0;color:var(--slate)}
@@ -515,8 +519,8 @@ body.noanim *,body.noanim *::before,body.noanim *::after{animation:none!importan
 <div class="overlay" id="cmp" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="cmp-t">
     <h2 id="cmp-t">Новый пост</h2>
-    <button class="pickph" id="cmp-pick" type="button"><span id="cmp-ph">＋ Выбрать фото</span><img id="cmp-prev" alt="" hidden></button>
-    <input type="file" id="cmp-file" accept="image/*" hidden>
+    <button class="pickph" id="cmp-pick" type="button"><span id="cmp-ph">＋ Фото или видео</span><img id="cmp-prev" alt="" hidden><video id="cmp-pv" muted playsinline hidden></video></button>
+    <input type="file" id="cmp-file" accept="image/*,video/*" hidden>
     <label class="flabel" for="cmp-place">Где и что было</label><input type="text" id="cmp-place" maxlength="80" autocomplete="off">
     <label class="flabel" for="cmp-cap">Подпись</label><input type="text" id="cmp-cap" maxlength="200" autocomplete="off">
     <div class="err" id="cmp-err" role="alert"></div>
@@ -1047,29 +1051,35 @@ body.noanim *,body.noanim *::before,body.noanim *::after{animation:none!importan
     var open = !$('[data-panel="feed"]', $('#s-' + me)).hidden;
     loadPosts().then(function () {
       var mx = posts.reduce(function (a, p) { return Math.max(a, p.ts); }, 0), fresh = posts.some(function (p) { return p.by !== me && p.ts > lastPostTs; });
-      if (lastPostTs >= 0 && fresh && !open) { var t = toast('Новое фото в ленте 📸'); t.onclick = function () { goTab(ME(), 'feed'); t.remove(); }; }
+      if (lastPostTs >= 0 && fresh && !open) { var t = toast('Новое в ленте 📸'); t.onclick = function () { goTab(ME(), 'feed'); t.remove(); }; }
       lastPostTs = mx; if (open) renderFeed();
     });
+  }
+  function setMedia(el, k, isV) {
+    function put(d) {
+      if (!isV || d.indexOf('blob:') === 0) { el.src = d; return; }
+      fetch(d).then(function (r) { return r.blob(); }).then(function (b) { var u = URL.createObjectURL(b); photos[k] = u; el.src = u; });
+    }
+    if (photos[k]) { put(photos[k]); if (!isV) el.style.animation = 'none'; return; }
+    dbReq('photos/' + k).then(function (d) { if (d) { photos[k] = d; put(d); } }).catch(function () {});
   }
   function renderFeed() {
     var me = ME(), box = $('#feed-' + me); if (!box) return;
     var list = posts.slice().sort(function (a, b) { return b.ts - a.ts; });
+    var nv = list.filter(function (p) { return p.type === 'video'; }).length, hp = $('[data-panel="feed"] .hero p', $('#s-' + me));
+    if (hp) { hp.textContent = list.length ? (list.length - nv) + ' фото' + (nv ? ' · ' + nv + ' видео' : '') : 'Пока пусто'; hp.style.cssText = 'font-size:20px;font-weight:600;color:var(--ink)'; }
     var sig = me + list.map(function (p) { return p.key + Object.keys(p.likes || {}).join(''); }).join('|');
     if (sig === feedSig) return; feedSig = sig;
-    if (!list.length) { box.innerHTML = '<div class="note">Здесь будет ваша лента. Добавь первое фото ♥</div>'; return; }
+    if (!list.length) { box.innerHTML = '<div class="note">Здесь будет ваша лента. Добавь первое фото или видео ♥</div>'; return; }
     box.innerHTML = list.map(function (p) {
-      var k = esc(p.key), liked = p.likes && p.likes[me], n = Object.keys(p.likes || {}).length, isNew = !shown[p.key]; shown[p.key] = 1;
-      return '<article class="post' + (isNew ? ' new' : '') + '"><header class="ph"><span class="av sm" data-av="' + p.by + '"></span><span><b>' + esc(who(p.by)) + '</b>' + (p.place ? '<br><span class="meta">' + esc(p.place) + '</span>' : '') + '</span><span class="meta pdate">' + esc(fmtTs(p.ts)) + '</span>' +
-        (p.by === me ? '<button class="del" type="button" data-pdel="' + k + '" aria-label="Удалить пост">×</button>' : '') + '</header>' +
-        '<div class="pimg" data-dbl="' + k + '"><img alt="" data-ph="' + k + '"></div>' +
-        '<div class="pact"><button class="lk ' + (liked ? 'on' : '') + '" type="button" data-lk="' + k + '" aria-label="Нравится">' + (liked ? '♥' : '♡') + '</button><span class="meta">' + (n || '') + '</span></div>' +
-        (p.caption ? '<p class="cap"><b>' + esc(who(p.by)) + '</b> ' + esc(p.caption) + '</p>' : '<div style="height:14px"></div>') + '</article>';
+      var k = esc(p.key), v = p.type === 'video', liked = p.likes && p.likes[me], n = Object.keys(p.likes || {}).length, isNew = !shown[p.key]; shown[p.key] = 1;
+      return '<article class="post' + (isNew ? ' new' : '') + '"><div class="pimg"' + (v ? '' : ' data-dbl="' + k + '"') + '>' +
+        (v ? '<video data-pv="' + k + '" controls playsinline preload="metadata"></video>' : '<img alt="" data-ph="' + k + '">') +
+        (p.by === me ? '<button class="pdel" type="button" data-pdel="' + k + '" aria-label="Удалить пост">×</button>' : '') + '</div>' +
+        '<div class="pact"><button class="lk ' + (liked ? 'on' : '') + '" type="button" data-lk="' + k + '" aria-label="Нравится">' + (liked ? '♥' : '♡') + '</button><span class="meta">' + (n || '') + '</span><span class="meta pdate">' + esc(fmtTs(p.ts)) + '</span></div>' +
+        ((p.place || p.caption) ? '<div class="cap">' + (p.place ? '<b>📍 ' + esc(p.place) + '</b>' : '') + (p.place && p.caption ? '<br>' : '') + esc(p.caption || '') + '</div>' : '<div style="height:14px"></div>') + '</article>';
     }).join('');
-    $$('[data-av]', box).forEach(function (a) { avatar(a, photoOf(profile, a.dataset.av === 'her' ? 'herPhoto' : 'himPhoto'), letterOf(who(a.dataset.av), '♥')); });
-    $$('[data-ph]', box).forEach(function (img) {
-      var k = img.dataset.ph; if (photos[k]) { img.src = photos[k]; img.style.animation = 'none'; return; }
-      dbReq('photos/' + k).then(function (d) { if (d) { photos[k] = d; img.src = d; } }).catch(function () {});
-    });
+    $$('[data-ph],[data-pv]', box).forEach(function (el) { setMedia(el, el.dataset.ph || el.dataset.pv, !!el.dataset.pv); });
   }
   function setLike(key, on, host) {
     var p = posts.filter(function (x) { return x.key === key; })[0]; if (!p) return; var me = ME(); p.likes = p.likes || {};
@@ -1099,29 +1109,39 @@ body.noanim *,body.noanim *::before,body.noanim *::after{animation:none!importan
     };
     fr.readAsDataURL(file);
   }
+  var draftType = 'photo', MAXV = 15 * 1048576;
   function openCmp() {
-    draftImg = null; $('#cmp-prev').hidden = true; $('#cmp-ph').hidden = false; $('#cmp-cap').value = ''; $('#cmp-err').textContent = '';
+    draftImg = null; draftType = 'photo'; $('#cmp-prev').hidden = true; $('#cmp-pv').hidden = true; $('#cmp-ph').hidden = false; $('#cmp-cap').value = ''; $('#cmp-err').textContent = '';
     $('#cmp-place').value = (plan && plan.name) || ''; $('#cmp').hidden = false;
   }
-  function closeCmp() { $('#cmp').hidden = true; }
+  function closeCmp() { $('#cmp').hidden = true; $('#cmp-pv').pause(); }
   $('#cmp-pick').addEventListener('click', function () { $('#cmp-file').value = ''; $('#cmp-file').click(); });
   $('#cmp-file').addEventListener('change', function (e) {
-    var f = e.target.files && e.target.files[0]; if (!f) return;
-    shrink(f, function (d) { draftImg = d; $('#cmp-prev').src = d; $('#cmp-prev').hidden = false; $('#cmp-ph').hidden = true; });
+    var f = e.target.files && e.target.files[0], err = $('#cmp-err'); if (!f) return; err.textContent = '';
+    if (f.type.indexOf('video') === 0) {
+      if (!useDb) { err.textContent = 'Для видео нужна подключённая база Firebase.'; return; }
+      if (f.size > MAXV) { err.textContent = 'Видео слишком большое (' + Math.round(f.size / 1048576) + ' МБ). Максимум 15 МБ: обрежь или сожми его.'; return; }
+      var fr = new FileReader();
+      fr.onload = function () {
+        draftImg = fr.result; draftType = 'video'; var v = $('#cmp-pv'); v.src = fr.result; v.hidden = false; v.play().catch(function () {});
+        $('#cmp-prev').hidden = true; $('#cmp-ph').hidden = true;
+      };
+      fr.readAsDataURL(f);
+    } else shrink(f, function (d) { draftImg = d; draftType = 'photo'; $('#cmp-prev').src = d; $('#cmp-prev').hidden = false; $('#cmp-pv').hidden = true; $('#cmp-ph').hidden = true; });
   });
   $('#cmp-x').addEventListener('click', closeCmp);
   $('#cmp-ok').addEventListener('click', function () {
-    var err = $('#cmp-err'), btn = $('#cmp-ok'); if (!draftImg) { err.textContent = 'Выбери фото.'; return; }
+    var err = $('#cmp-err'), btn = $('#cmp-ok'); if (!draftImg) { err.textContent = 'Выбери фото или видео.'; return; }
     var ts = Date.now(), key = ts.toString(36) + uid(), me = ME();
-    var p = { key: key, by: me, ts: ts, place: $('#cmp-place').value.trim(), caption: $('#cmp-cap').value.trim() };
+    var p = { key: key, by: me, ts: ts, type: draftType, place: $('#cmp-place').value.trim(), caption: $('#cmp-cap').value.trim() };
     function done() {
       posts.push(p); photos[key] = draftImg; closeCmp(); btn.disabled = false; btn.textContent = 'Опубликовать';
-      if (!shown) shown = {}; feedSig = ''; goTab(me, 'feed'); renderFeed(); burst($('#feed-' + me));
-      notify(me === 'her' ? 'him' : 'her', '📸 ' + who(me) + ' добавил(а) фото в ленту' + (p.place ? ': ' + p.place : ''));
+      feedSig = ''; goTab(me, 'feed'); renderFeed(); burst($('#feed-' + me));
+      notify(me === 'her' ? 'him' : 'her', (p.type === 'video' ? '🎬 ' : '📸 ') + who(me) + ' добавил(а) в ленту' + (p.place ? ': ' + p.place : ''));
     }
     btn.disabled = true; btn.textContent = 'Загружаю…'; err.textContent = '';
     if (!useDb) { p.img = draftImg; var l = lsGet(LSP, []); l.push(p); lsSet(LSP, l); done(); return; }
-    var body = { by: p.by, ts: p.ts, place: p.place, caption: p.caption };
+    var body = { by: p.by, ts: p.ts, type: p.type, place: p.place, caption: p.caption };
     dbReq('photos/' + key, 'PUT', draftImg).then(function () { return dbReq('posts/' + key, 'PUT', body); }).then(done)
       .catch(function () { btn.disabled = false; btn.textContent = 'Опубликовать'; err.textContent = 'Не удалось загрузить. Проверь интернет и правила Firebase.'; });
   });
