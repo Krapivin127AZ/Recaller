@@ -1256,13 +1256,23 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
       lastPostTs = mx; if (open) renderFeed();
     });
   }
-  function setMedia(el, k, isV) {
-    function put(d) {
-      if (!isV || d.indexOf('blob:') === 0) { el.src = d; return; }
-      fetch(d).then(function (r) { return r.blob(); }).then(function (b) { var u = URL.createObjectURL(b); photos[k] = u; el.src = u; });
-    }
-    if (photos[k]) { put(photos[k]); if (!isV) el.style.animation = 'none'; return; }
-    dbReq('photos/' + k).then(function (d) { if (d) { photos[k] = d; put(d); } }).catch(function () {});
+  var MC = 'ds3-media';
+  function mediaGet(k) { return window.caches ? caches.open(MC).then(function (c) { return c.match('https://media.local/' + k); }).then(function (r) { return r ? r.blob() : null; }).catch(function () { return null; }) : Promise.resolve(null); }
+  function mediaPut(k, blob) { if (window.caches) caches.open(MC).then(function (c) { return c.put('https://media.local/' + k, new Response(blob)); }).catch(function () {}); }
+  function mediaDel(k) { if (window.caches) caches.open(MC).then(function (c) { return c.delete('https://media.local/' + k); }).catch(function () {}); }
+  function fetchMedia(k, nch) {
+    if (nch) { var a = []; for (var i = 0; i < nch; i++) a.push(dbReq('vchunks/' + k + '/' + i)); return Promise.all(a).then(function (parts) { return parts.join(''); }); }
+    return dbReq('photos/' + k);
+  }
+  function setMedia(el, k, isV, nch) {
+    if (photos[k]) { el.src = photos[k]; if (!isV) el.style.animation = 'none'; return; }
+    mediaGet(k).then(function (b) {
+      if (b) return URL.createObjectURL(b);
+      return fetchMedia(k, nch).then(function (d) {
+        if (!d) return null;
+        return fetch(d).then(function (r) { return r.blob(); }).then(function (bl) { mediaPut(k, bl); return URL.createObjectURL(bl); });
+      });
+    }).then(function (u) { if (u) { photos[k] = u; el.src = u; } }).catch(function () {});
   }
   function renderFeed() {
     var me = ME(), box = $('#feed-' + me); if (!box) return;
@@ -1275,12 +1285,12 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
     box.innerHTML = list.map(function (p) {
       var k = esc(p.key), v = p.type === 'video', liked = p.likes && p.likes[me], n = Object.keys(p.likes || {}).length, isNew = !shown[p.key]; shown[p.key] = 1;
       return '<article class="post' + (isNew ? ' new' : '') + '"><div class="pimg"' + (v ? '' : ' data-dbl="' + k + '"') + '>' +
-        (v ? '<video data-pv="' + k + '" controls playsinline preload="metadata"></video>' : '<img alt="" data-ph="' + k + '">') +
+        (v ? '<video data-pv="' + k + '" data-ch="' + (p.chunks || 0) + '" controls playsinline preload="metadata"></video>' : '<img alt="" data-ph="' + k + '">') +
         (p.by === me ? '<button class="pdel" type="button" data-pdel="' + k + '" aria-label="Удалить пост">×</button>' : '') + '</div>' +
         '<div class="pact"><button class="lk ' + (liked ? 'on' : '') + '" type="button" data-lk="' + k + '" aria-label="Нравится">' + (liked ? '♥' : '♡') + '</button><span class="meta">' + (n || '') + '</span><span class="meta pdate">' + esc(fmtTs(p.ts)) + '</span></div>' +
         ((p.place || p.caption) ? '<div class="cap">' + (p.place ? '<b>📍 ' + esc(p.place) + '</b>' : '') + (p.place && p.caption ? '<br>' : '') + esc(p.caption || '') + '</div>' : '<div style="height:14px"></div>') + '</article>';
     }).join('');
-    $$('[data-ph],[data-pv]', box).forEach(function (el) { setMedia(el, el.dataset.ph || el.dataset.pv, !!el.dataset.pv); });
+    $$('[data-ph],[data-pv]', box).forEach(function (el) { setMedia(el, el.dataset.ph || el.dataset.pv, !!el.dataset.pv, +el.dataset.ch || 0); });
   }
   function setLike(key, on, host) {
     var p = posts.filter(function (x) { return x.key === key; })[0]; if (!p) return; var me = ME(); p.likes = p.likes || {};
@@ -1294,7 +1304,7 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
   }
   function delPost(key) {
     posts = posts.filter(function (x) { return x.key !== key; });
-    if (useDb) { dbReq('posts/' + key, 'DELETE').catch(function () {}); dbReq('photos/' + key, 'DELETE').catch(function () {}); } else lsSet(LSP, posts);
+    if (useDb) { dbReq('posts/' + key, 'DELETE').catch(function () {}); dbReq('photos/' + key, 'DELETE').catch(function () {}); dbReq('vchunks/' + key, 'DELETE').catch(function () {}); mediaDel(key); } else lsSet(LSP, posts);
     feedSig = ''; renderFeed();
   }
   function shrink(file, cb) {
@@ -1310,7 +1320,7 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
     };
     fr.readAsDataURL(file);
   }
-  var draftType = 'photo', MAXV = 15 * 1048576;
+  var draftType = 'photo', MAXV = 30 * 1048576;
   function openCmp() {
     draftImg = null; draftType = 'photo'; $('#cmp-prev').hidden = true; $('#cmp-pv').hidden = true; $('#cmp-ph').hidden = false; $('#cmp-cap').value = ''; $('#cmp-err').textContent = '';
     $('#cmp-place').value = (plan && plan.name) || ''; $('#cmp').hidden = false;
@@ -1321,7 +1331,7 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
     var f = e.target.files && e.target.files[0], err = $('#cmp-err'); if (!f) return; err.textContent = '';
     if (f.type.indexOf('video') === 0) {
       if (!useDb) { err.textContent = 'Для видео нужна подключённая база Firebase.'; return; }
-      if (f.size > MAXV) { err.textContent = 'Видео слишком большое (' + Math.round(f.size / 1048576) + ' МБ). Максимум 15 МБ: обрежь или сожми его.'; return; }
+      if (f.size > MAXV) { err.textContent = 'Видео слишком большое (' + Math.round(f.size / 1048576) + ' МБ). Максимум 30 МБ: обрежь или сожми его.'; return; }
       var fr = new FileReader();
       fr.onload = function () {
         draftImg = fr.result; draftType = 'video'; var v = $('#cmp-pv'); v.src = fr.result; v.hidden = false; v.play().catch(function () {});
@@ -1335,16 +1345,25 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
     var err = $('#cmp-err'), btn = $('#cmp-ok'); if (!draftImg) { err.textContent = 'Выбери фото или видео.'; return; }
     var ts = Date.now(), key = ts.toString(36) + uid(), me = ME();
     var p = { key: key, by: me, ts: ts, type: draftType, place: $('#cmp-place').value.trim(), caption: $('#cmp-cap').value.trim() };
-    function done() {
-      posts.push(p); photos[key] = draftImg; closeCmp(); btn.disabled = false; btn.textContent = 'Опубликовать';
+    var dd = draftImg;
+    function finish() {
       feedSig = ''; goTab(me, 'feed'); renderFeed(); burst($('#feed-' + me));
       notify(me === 'her' ? 'him' : 'her', (p.type === 'video' ? '🎬 ' : '📸 ') + who(me) + ' добавил(а) в ленту' + (p.place ? ': ' + p.place : ''));
+    }
+    function done() {
+      posts.push(p); closeCmp(); btn.disabled = false; btn.textContent = 'Опубликовать';
+      if (p.type === 'video') fetch(dd).then(function (r) { return r.blob(); }).then(function (b) { photos[key] = URL.createObjectURL(b); mediaPut(key, b); finish(); }).catch(function () { photos[key] = dd; finish(); });
+      else { photos[key] = dd; finish(); }
     }
     btn.disabled = true; btn.textContent = 'Загружаю…'; err.textContent = '';
     if (!useDb) { p.img = draftImg; var l = lsGet(LSP, []); l.push(p); lsSet(LSP, l); done(); return; }
     var body = { by: p.by, ts: p.ts, type: p.type, place: p.place, caption: p.caption };
-    dbReq('photos/' + key, 'PUT', draftImg).then(function () { return dbReq('posts/' + key, 'PUT', body); }).then(done)
-      .catch(function () { btn.disabled = false; btn.textContent = 'Опубликовать'; err.textContent = 'Не удалось загрузить. Проверь интернет и правила Firebase.'; });
+    var CH = 4000000, parts = [];
+    if (p.type === 'video') for (var o = 0; o < dd.length; o += CH) parts.push(dd.slice(o, o + CH));
+    if (parts.length) { body.chunks = parts.length; p.chunks = parts.length; }
+    var up = parts.length ? parts.reduce(function (pr, c, i) { return pr.then(function () { btn.textContent = 'Загружаю ' + (i + 1) + '/' + parts.length + '…'; return dbReq('vchunks/' + key + '/' + i, 'PUT', c); }); }, Promise.resolve()) : dbReq('photos/' + key, 'PUT', dd);
+    up.then(function () { return dbReq('posts/' + key, 'PUT', body); }).then(done)
+      .catch(function () { if (parts.length) dbReq('vchunks/' + key, 'DELETE').catch(function () {}); btn.disabled = false; btn.textContent = 'Опубликовать'; err.textContent = 'Не удалось загрузить. Проверь интернет и правила Firebase.'; });
   });
   document.addEventListener('click', function (e) {
     var el;
