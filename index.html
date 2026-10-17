@@ -342,6 +342,7 @@ body.noanim .fl,body.noanim::before{display:none}
 .tp i{width:9px;height:9px;border-radius:50%;background:var(--blue);animation:dot 1s infinite}.tp i:nth-child(2){animation-delay:.15s}.tp i:nth-child(3){animation-delay:.3s}
 .tcard{animation:qin .55s cubic-bezier(.2,1.2,.4,1)}.tcard .what{font-size:22px}.tcard .when{margin-top:8px;font-size:16px;line-height:1.45}
 [data-tab="task"]::before{content:'🎲'}
+#task-her,#task-him{position:relative}
 @media (prefers-reduced-motion: reduce){.fl,body::before{display:none}}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (max-width: 640px) {
@@ -749,7 +750,7 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
   var items = (C.items || []).slice(), visited = {}, choices = [], rolls = [], plan = null, dbOk = false;
 
   function meta() {
-    var ks = ['items', 'visited', 'profile', 'rolls', 'plan', 'choices', 'settings'];
+    var ks = ['items', 'visited', 'profile', 'rolls', 'plan', 'choices', 'settings', 'taskreq'];
     return Promise.all(ks.map(function (k) { return dbReq(k); })).then(function (r) { var o = {}; ks.forEach(function (k, i) { o[k] = r[i]; }); return o; });
   }
   function load() {
@@ -761,7 +762,7 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
         visited = all.visited || {};
         profile = all.profile || {};
         rolls = Object.keys(all.rolls || {}).map(function (k) { return all.rolls[k]; });
-        plan = all.plan || null;
+        plan = all.plan || null; taskReq = all.taskreq || null;
         choices = Object.keys(all.choices || {}).map(function (k) { var c = all.choices[k]; c.key = k; return c; });
         if (!setDirty) settings = all.settings || {};
         dbOk = true; applySettings();
@@ -775,7 +776,7 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
     visited = lsGet(LS.visited, {});
     profile = lsGet(LS.profile, {});
     rolls = lsGet(LS.rolls, []);
-    plan = lsGet(LS.plan, null);
+    plan = lsGet(LS.plan, null); taskReq = lsGet('ds3-taskreq', null);
     choices = lsGet(LS.choices, []);
     if (!setDirty) settings = lsGet('ds3-settings', {});
     applySettings();
@@ -1209,6 +1210,12 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
     var me = ME(), sec = $('#s-' + me);
     if (me === 'him') renderHim(); else { renderPlan(); applyProfile(); }
     pollFeed(me);
+    var tsig = reqSig();
+    if (lastTaskSig !== null && tsig !== lastTaskSig && taskReq && taskReq.lastBy !== me) {
+      snd('ding'); var tt = toast(who(taskReq.lastBy) + (taskReq.status === 'new' ? ': новое задание ♥' : ': ответил(а) на задание')); tt.onclick = function () { goTab(ME(), 'task'); tt.remove(); };
+    }
+    lastTaskSig = tsig;
+    if (!taskForm && !$('[data-panel="task"]', sec).hidden) renderTask();
     var onTab = !$('[data-panel="date"]', sec).hidden;
     if (plan && lastRev >= 0 && (plan.rev || 0) > lastRev && plan.lastBy && plan.lastBy !== me) {
       var what = { pending: 'новое предложение ♥', ok: 'подтвердил(а) свидание ♥', no: 'отклонил(а) свидание' }[plan.status] || 'обновил(а) свидание';
@@ -1563,20 +1570,69 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
     if (!useDb) { tasksDone = lsGet('ds3-tasks', []); return Promise.resolve(); }
     return dbReq('tasks').then(function (a) { tasksDone = Object.keys(a || {}).map(function (k) { return a[k]; }); }).catch(function () {});
   }
+  var taskReq = null, taskForm = false, lastTaskSig = null;
+  function reqSig() { return taskReq ? taskReq.ts + taskReq.status : ''; }
+  function saveReq() { lsSet('ds3-taskreq', taskReq); if (useDb) dbReq('taskreq', taskReq ? 'PUT' : 'DELETE', taskReq || undefined).catch(function () {}); }
+  function reqHtml(me) {
+    var r = taskReq; if (!r) return '';
+    var mine = r.by === me, acc = r.status === 'accepted';
+    var lab = mine ? (acc ? 'Принято ♥' : 'Отправлено: ждём ответ') : (acc ? 'Вы приняли ♥' : 'Задание от ' + who(r.by));
+    var acts = mine
+      ? (acc ? '<button class="btn blue" type="button" data-tk="rq-done">Выполнено ✓</button>' : '') + '<button class="textlink" type="button" data-tk="rq-cancel">Отменить</button>'
+      : (acc ? '<button class="btn blue" type="button" data-tk="rq-done">Выполнено ✓</button>' : '<button class="btn blue" type="button" data-tk="rq-accept">Принять ♥</button>') +
+        '<button class="btn outline" type="button" data-tk="rq-date">Предложить свидание</button><button class="textlink" type="button" data-tk="rq-no">' + (acc ? 'Отказаться' : 'Отклонить') + '</button>';
+    return '<div class="plancard tcard"><span class="st ' + (acc ? 'ok' : 'pending') + '">' + esc(lab) + '</span><div class="what">🎯 ' + esc(r.title) + '</div>' +
+      (r.text ? '<div class="when">' + esc(r.text) + '</div>' : '') + (r.place ? '<div class="when">📍 ' + esc(r.place) + '</div>' : '') + '<div class="acts">' + acts + '</div></div>';
+  }
+  function taskFormHtml() {
+    return '<div class="plancard tcard"><div class="kind">Своё задание</div>' +
+      '<label for="tf-title">Название</label><input type="text" id="tf-title" maxlength="60" placeholder="Например, ужин при свечах" autocomplete="off">' +
+      '<label for="tf-text">Что нужно сделать</label><input type="text" id="tf-text" maxlength="200" placeholder="Опиши задание для двоих" autocomplete="off">' +
+      '<label for="tf-place">Где (по желанию)</label><input type="text" id="tf-place" maxlength="80" autocomplete="off">' +
+      '<div class="err" id="tf-err" role="alert"></div><div class="acts"><button class="btn blue" type="button" data-tk="own-send">Отправить партнёру ♥</button><button class="btn outline" type="button" data-tk="own-cancel">Отмена</button></div></div>';
+  }
   function renderTask(typing) {
-    var me = ME(), box = $('#task-' + me), hp = $('[data-panel="task"] .hero p', $('#s-' + me)); if (!box) return;
+    var me = ME(), other = me === 'her' ? 'him' : 'her', box = $('#task-' + me), hp = $('[data-panel="task"] .hero p', $('#s-' + me)); if (!box) return;
+    var ob = $('#task-' + other); if (ob && ob.innerHTML) ob.innerHTML = '';
     if (hp) hp.textContent = tasksDone.length ? 'Выполнили вместе: ' + tasksDone.length : 'Задания, которые делают вдвоём';
     if (!curTask) { curTask = genTask(rng(dayseed())); curTask.daily = true; }
-    if (typing) { box.innerHTML = '<div class="tp"><i></i><i></i><i></i></div>'; return; }
-    box.innerHTML = '<div class="plancard tcard"><span class="st">' + (curTask.daily ? 'Задание дня' : 'Новое задание') + '</span><div class="what">' + curTask.k + ' ' + esc(curTask.title) + '</div><div class="when">' + esc(curTask.text) + '</div>' +
+    var h = reqHtml(me);
+    if (taskForm) { box.innerHTML = h + taskFormHtml(); return; }
+    if (typing) { box.innerHTML = h + '<div class="tp"><i></i><i></i><i></i></div>'; return; }
+    box.innerHTML = h + '<div class="plancard tcard"><span class="st">' + (curTask.daily ? 'Задание дня' : 'Новое задание') + '</span><div class="what">' + curTask.k + ' ' + esc(curTask.title) + '</div><div class="when">' + esc(curTask.text) + '</div>' +
       (curTask.place ? '<div class="when">📍 ' + esc(curTask.place) + '</div>' : '') +
-      '<div class="acts"><button class="btn blue" type="button" data-tk="send">Предложить свидание ♥</button><button class="btn outline" type="button" data-tk="new">Другое ✨</button><button class="btn outline" type="button" data-tk="done">Выполнено ✓</button><button class="textlink" type="button" data-tk="list">В список идей</button></div></div>';
+      '<div class="acts"><button class="btn blue" type="button" data-tk="send">Предложить свидание ♥</button><button class="btn outline" type="button" data-tk="new">Другое ✨</button><button class="btn outline" type="button" data-tk="own">Придумать своё ✎</button><button class="btn outline" type="button" data-tk="done">Выполнено ✓</button><button class="textlink" type="button" data-tk="list">В список идей</button></div></div>';
+  }
+  function taskAct(a) {
+    var me = ME(), other = me === 'her' ? 'him' : 'her', box = $('#task-' + me);
+    if (a === 'own') { taskForm = true; renderTask(); return; }
+    if (a === 'own-cancel') { taskForm = false; renderTask(); return; }
+    if (a === 'own-send') {
+      var tt = $('#tf-title', box).value.trim(), tx = $('#tf-text', box).value.trim(), pl = $('#tf-place', box).value.trim();
+      if (!tt && !tx) { $('#tf-err', box).textContent = 'Напиши название или что нужно сделать.'; return; }
+      taskReq = { title: tt || tx.slice(0, 40), text: tx, place: pl, by: me, lastBy: me, ts: Date.now(), status: 'new' };
+      saveReq(); taskForm = false; lastTaskSig = reqSig();
+      notify(other, '🎯 ' + who(me) + ' предлагает задание: ' + taskReq.title + (tx ? '\n' + tx : '') + (pl ? '\n📍 ' + pl : '') + '\nОткрой сайт, вкладка «Задание»');
+      snd('pop'); toast('Задание отправлено ♥'); renderTask(); return;
+    }
+    var r = taskReq; if (!r) return;
+    if (a === 'rq-date') { goTab(me, 'date'); openForm({ what: r.title, place: r.place, type: 'custom', cmt: r.text }, 'new'); return; }
+    if (a === 'rq-accept') { r.status = 'accepted'; r.lastBy = me; saveReq(); notify(other, '✅ ' + who(me) + ' принял(а) задание: ' + r.title); }
+    else if (a === 'rq-done') {
+      var rec = { t: r.title, ts: Date.now(), by: me }; tasksDone.push(rec); lsSet('ds3-tasks', tasksDone);
+      if (useDb) dbReq('tasks', 'POST', rec).catch(function () {});
+      taskReq = null; saveReq(); notify(other, '🎉 ' + who(me) + ' отметил(а) задание выполненным: ' + r.title);
+    } else if (a === 'rq-no' || a === 'rq-cancel') { taskReq = null; saveReq(); if (a === 'rq-no') notify(other, '❌ ' + who(me) + ' отклонил(а) задание: ' + r.title); }
+    lastTaskSig = reqSig(); renderTask();
+    if (a === 'rq-done') { burst($('#task-' + me)); snd('ding'); }
   }
   document.addEventListener('click', function (e) {
     var me = ME(), el = e.target.closest('[data-tk]');
     if (e.target.closest('[data-tab="task"]')) { loadTasks().then(function () { renderTask(); }); return; }
-    if (!el || !curTask) return;
+    if (!el) return;
     var a = el.dataset.tk;
+    if (a.indexOf('rq-') === 0 || a.indexOf('own') === 0) { taskAct(a); return; }
+    if (!curTask) return;
     if (a === 'new') nextTask();
     else if (a === 'send') { goTab(me, 'date'); openForm({ what: curTask.title, place: curTask.place, type: 'custom', cmt: curTask.text }, 'new'); }
     else if (a === 'list') { items.push({ id: uid(), type: curTask.kind, name: curTask.title }); saveItems(); toast('Добавлено в список идей ♥'); }
@@ -1707,7 +1763,7 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
 
   /* ---------- старт ---------- */
   show('landing');
-  load().then(function () { renderHer(); applyProfile(); lastRev = plan ? (plan.rev || 0) : 0; loadPosts().then(function () { lastPostTs = posts.reduce(function (a, p) { return Math.max(a, p.ts); }, 0); }); });
+  load().then(function () { renderHer(); applyProfile(); lastRev = plan ? (plan.rev || 0) : 0; lastTaskSig = reqSig(); loadPosts().then(function () { lastPostTs = posts.reduce(function (a, p) { return Math.max(a, p.ts); }, 0); }); });
 })();
 </script>
 <script>
