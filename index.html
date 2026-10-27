@@ -1955,5 +1955,303 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
   scan();
 })();
 </script>
+  <!-- ===== ПАТЧ: генератор вопросов. Вставь целиком ПЕРЕД </body> в самом конце index.html (после последнего </script>) ===== -->
+<style>
+[data-tab="gen"]::before{content:'💭'}
+.qbar{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.qbar .btn{min-width:52px}
+.qfav[aria-pressed="true"]{border-color:var(--orange);color:var(--orange)}
+.qmeta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+.qwho{margin-bottom:14px;align-items:center}
+.qwho .lbl{color:var(--slate);font-size:13px}
+.qstatus{min-height:1.3em;margin-top:8px;font-size:13px;color:var(--slate);text-align:center}
+.qfavs{margin-top:22px}
+.qfavs summary{cursor:pointer;color:var(--link);font-size:14px}
+.qfavs ul{margin-top:12px}
+.qfavs .name{cursor:pointer}
+.qcard .qtext{transition:opacity .2s}
+</style>
+<script>
+(function () {
+  if (window.__qgen) return; window.__qgen = 1;
+  var C = window.CONFIG || {};
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  function lsGet(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function vibe(n) { try { if (window.VIBE && window.VIBE[n]) window.VIBE[n](); } catch (e) {} }
+
+  /* ---------- банки вопросов ---------- */
+  var Q = {
+    light: [
+      'Какой у тебя идеальный выходной от начала до конца?', 'Что ты могла бы есть каждый день и никогда не надоело бы?',
+      'Какое место в городе у тебя самое любимое?', 'Если бы завтра можно было улететь куда угодно, куда бы ты полетела?',
+      'Какой фильм ты могла бы пересматривать бесконечно?', 'Каким бы ты хотела видеть идеальное утро?',
+      'Какая песня сейчас чаще всего играет у тебя в наушниках?', 'Чай, кофе или что-то совсем другое? И как ты его пьёшь?',
+      'Какое время года тебе нравится больше всего и почему?', 'Что ты любишь делать, когда никто не видит?',
+      'Какое блюдо из детства у тебя самое любимое?', 'Какая мелочь быстрее всего поднимает тебе настроение?',
+      'Ты скорее жаворонок или сова?', 'Какую суперспособность ты бы выбрала?',
+      'Что бы ты заказала на свой последний ужин?', 'Какая книга или сериал недавно тебя зацепили?',
+      'Горы, море или лес? Объясни выбор.', 'Какое животное тебе ближе всего по характеру?',
+      'Какой подарок тебе запомнился больше всего?', 'Что ты хотела бы попробовать в этом месяце впервые?'
+    ],
+    deep: [
+      'Какое твоё самое тёплое воспоминание из детства?', 'Что для тебя значит чувствовать себя дома?',
+      'Чем ты гордишься, но редко об этом говоришь?', 'Чему тебя научила самая сложная ситуация в жизни?',
+      'О чём ты мечтала в детстве и изменилась ли эта мечта?', 'Что для тебя важнее в людях: доброта, юмор или честность?',
+      'Каким ты видишь свой идеальный день через пять лет?', 'Что тебя в последнее время вдохновляет?',
+      'Какой совет ты дала бы себе пять лет назад?', 'Что помогает тебе, когда тяжело?',
+      'Какой момент в наших отношениях ты вспоминаешь с улыбкой?', 'Что для тебя значит быть счастливой?',
+      'Чего ты хочешь больше в своей жизни?', 'Какое качество в себе ты ценишь больше всего?',
+      'Что тебя пугает, но при этом притягивает?', 'Как ты понимаешь, что тебе с человеком хорошо?',
+      'Какую привычку ты хотела бы развить?', 'О чём ты хотела бы поговорить, но всё время откладываешь?',
+      'Что для тебя значит внимание со стороны близкого человека?', 'Какой самый смелый поступок ты совершала?'
+    ],
+    fun: [
+      'Если бы у нас был общий сериал, как бы он назывался?', 'Какой смешной случай из жизни ты рассказываешь чаще всего?',
+      'Кем бы ты работала, если бы деньги не были важны?', 'Если бы ты была героиней мультфильма, то какой?',
+      'Придумай название нашему свиданию как для фильма.', 'Какая у тебя самая странная привычка?',
+      'Что бы ты сделала, если бы стала невидимой на один день?', 'Какую совершенно бесполезную вещь ты умеешь лучше всех?',
+      'Если бы мы открыли своё кафе, какое оно было бы?', 'Выбери песню, которая звучит как моё настроение.',
+      'Какой эмодзи описывает тебя сегодня?', 'Что бы ты взяла с собой на необитаемый остров, кроме еды и воды?',
+      'Какой фильм мы обязательно должны посмотреть вместе?', 'Если бы мы были персонажами игры, какие у нас были бы роли?',
+      'Какая у тебя была самая неудачная причёска или стиль в жизни?', 'Что бы ты сделала, если бы выиграла миллион и должна потратить его за день?',
+      'Придумай нам девиз на этот месяц.', 'Угадай, что я закажу в кафе, а я попробую угадать твоё.',
+      'Какая сцена из твоей жизни достойна кино?', 'Какую смешную поговорку ты придумала бы про любовь?'
+    ],
+    love: [
+      'Что я делаю такого, от чего тебе становится теплее на душе?', 'Какой момент между нами ты хотела бы пережить ещё раз?',
+      'За что ты больше всего ценишь нас?', 'Какое моё качество тебя когда-то удивило?',
+      'Что для тебя самое романтичное в повседневной жизни?', 'Какой жест заботы для тебя важнее громких слов?',
+      'Как ты представляешь наш идеальный вечер вдвоём?', 'Чего тебе хотелось бы от меня чаще?',
+      'Какая наша общая фотография тебе дороже всего и почему?', 'Когда ты впервые подумала, что между нами что-то особенное?',
+      'Какое слово или фраза от меня заставляет тебя улыбаться?', 'Куда бы ты поехала со мной, если бы можно было выбрать любое место?',
+      'Какая песня для тебя звучит как мы?', 'Что бы ты сказала нам через десять лет?', 'Что помогает тебе чувствовать, что тебя любят?'
+    ],
+    mem: [
+      'Какое твоё самое яркое воспоминание об этом лете?', 'Какой день из детства ты помнишь так, будто это было вчера?',
+      'Где ты была по-настоящему счастлива?', 'Какой школьный учитель тебе запомнился и почему?',
+      'Какой запах возвращает тебя в детство?', 'Какое самое смешное недоразумение с тобой случалось?',
+      'Какую поездку ты вспоминаешь чаще всего?', 'Какая игрушка или вещь из детства была для тебя самой любимой?',
+      'Какой подарок ты запомнила на всю жизнь?', 'Каким было твоё первое впечатление обо мне?',
+      'Какой разговор с близким человеком ты никогда не забудешь?', 'Какую песню ты связываешь с важным моментом в жизни?',
+      'Что ты делала на каникулах, когда была маленькой?', 'Какой самый неожиданный поворот случился в твоей жизни?',
+      'Какое место из прошлого тебе хотелось бы навестить снова?'
+    ],
+    dream: [
+      'Какую мечту ты откладываешь и почему?', 'Где бы ты хотела жить через десять лет?',
+      'Какой навык ты мечтала бы освоить?', 'Что бы ты сделала, если бы точно знала, что у тебя получится?',
+      'Какое путешествие ты мечтаешь совершить?', 'Каким бы ты хотела видеть наш дом?',
+      'Какое дело тебе хотелось бы начать в этом году?', 'Чем бы ты занялась, если бы можно было не работать целый год?',
+      'Какую цель ты поставила на этот год?', 'Что бы ты хотела успеть до тридцати?',
+      'Каким ты видишь идеальный день в отпуске?', 'Что вдохновляет тебя мечтать смелее?',
+      'Какую традицию ты хотела бы создать в нашей семье?', 'Что нужно, чтобы ты почувствовала себя по-настоящему успешной?',
+      'О чём ты мечтаешь тихо, но сильно?'
+    ],
+    game: [
+      'Назовите по очереди три вещи, которые вы обязательно должны сделать вместе в этом году.', 'Опиши меня тремя словами, а я опишу тебя.',
+      'Покажи самое смешное фото из своей галереи и расскажи историю.', 'Расскажи два факта о себе и один выдуманный. Другой угадывает, какой выдуманный.',
+      'Выберите любую песню и по очереди рассказывайте, с чем она у вас связана.', 'Закажите друг другу блюдо вслепую: каждый называет, что выбрал бы для другого.',
+      'Придумайте общую фразу, которую будете говорить только вы двое.', 'Назови три мелочи, за которые ты сегодня благодарна.',
+      'Закрой глаза и опиши, как выглядит ваше любимое место.', 'Составьте план идеального выходного: по очереди добавляйте по одному пункту.',
+      'Придумайте вместе историю: каждый говорит по одному предложению.', 'Покажи жестами фильм, пусть другой отгадает.',
+      'Называйте по очереди места, где хотели бы побывать, пока не закончатся идеи.', 'Придумайте прозвище для вас двоих и объясните почему.',
+      'Скажите друг другу по комплименту, не повторяясь, пока хватит сил.'
+    ]
+  };
+  var QNAME = { light: 'Лёгкий вопрос', deep: 'Вопрос поглубже', fun: 'Весёлый вопрос', love: 'Про нас', mem: 'Воспоминание', dream: 'Мечта', game: 'Игра', gen: 'Из генератора ✨' };
+  var BANKS = ['light', 'deep', 'fun', 'love', 'mem', 'dream', 'game'], QFAV = 'ds3-q-fav', QUSED = 'ds3-q-used';
+
+  /* ---------- бесконечный генератор: шаблоны со вставками ---------- */
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  var GEN = [
+    function () { return 'Если бы у тебя был один день ' + pick(['без телефона', 'без обязанностей', 'только для себя', 'в любом городе мира', 'с любым человеком на свете']) + ', чем бы ты его заняла?'; },
+    function () { return 'Что для тебя значит ' + pick(['настоящая забота', 'уют', 'доверие', 'свобода', 'красивый вечер', 'честность в отношениях', 'близость', 'семья']) + '?'; },
+    function () { return 'Какой ' + pick(['ужин', 'отпуск', 'день рождения', 'вечер', 'подарок', 'концерт', 'разговор', 'праздник']) + ' в твоей жизни был лучшим?'; },
+    function () { return 'Если бы мы сейчас оказались ' + pick(['на берегу моря', 'в маленьком городе в горах', 'на крыше с видом на огни', 'в уютном кафе в Париже', 'в лесу у костра', 'на ночном рынке в Азии', 'в старом кинотеатре']) + ', что бы ты захотела сделать первым делом?'; },
+    function () { return 'Что ты хотела бы ' + pick(['попробовать', 'увидеть', 'приготовить', 'посмотреть', 'выучить']) + ' вместе со мной в ближайший ' + pick(['месяц', 'выходной', 'год']) + '?'; },
+    function () { var p = pick([['море', 'горы'], ['кофе', 'чай'], ['кино дома', 'кино в кинотеатре'], ['поездка без плана', 'поездка по плану'], ['утро', 'вечер'], ['сладкое', 'солёное'], ['лето', 'зима'], ['город', 'деревня']]); return 'Выбери одно: ' + p[0] + ' или ' + p[1] + '? Почему?'; },
+    function () { return 'Как бы выглядел твой ' + pick(['идеальный вечер', 'идеальный отпуск', 'идеальный завтрак', 'идеальный выходной', 'идеальный день рождения']) + '?'; },
+    function () { var p = pick([['сюрприз', 'получить'], ['комплимент', 'услышать'], ['подарок', 'получить'], ['совет', 'услышать']]); return 'Какой ' + p[0] + ' ты бы хотела ' + p[1] + ' от меня?'; },
+    function () { return 'Придумай название для ' + pick(['нашего вечера', 'нашей прогулки', 'нашего ужина', 'нашей поездки', 'нашей фотографии', 'нашего сериала']) + '.'; },
+    function () { return 'Угадай, ' + pick(['какой мой любимый десерт', 'о чём я думаю прямо сейчас', 'какое место в городе я люблю больше всего', 'чего я боюсь больше всего', 'какую песню я включаю чаще всего', 'какой подарок мне хотелось бы получить']) + '. Потом я скажу правду.'; },
+    function () { var n = pick([['три', 'вещи'], ['две', 'вещи'], ['пять', 'мелочей']]); return 'Назови ' + n[0] + ' ' + n[1] + ', за которые ты благодарна ' + pick(['сегодня', 'на этой неделе', 'в этом году']) + '.'; },
+    function () { return 'Что бы ты изменила в ' + pick(['нашем городе', 'своём расписании', 'мире', 'своей комнате', 'нашем плане на выходные']) + ', если бы это зависело только от тебя?'; },
+    function () { return 'Какой вопрос ты хотела бы задать ' + pick(['себе из прошлого', 'мне', 'себе через десять лет', 'себе в будущем']) + '?'; },
+    function () { return 'Что тебя больше всего ' + pick(['радует', 'удивляет', 'вдохновляет', 'успокаивает']) + ' в ' + pick(['осени', 'утренних прогулках', 'музыке', 'людях', 'вечерах дома', 'путешествиях']) + '?'; },
+    function () { return 'Что из того, что мы уже делали вместе, ты хотела бы повторить ' + pick(['в ближайший месяц', 'этой осенью', 'в этом году', 'на выходных']) + '?'; },
+    function () { return 'Какое место в мире ты бы показала мне первым делом ' + pick(['и почему', 'и что бы мы там делали']) + '?'; }
+  ];
+
+  /* ---------- «спросить его»: мужской род ---------- */
+  var MASC = [
+    ['героиней мультфильма, то какой?', 'героем мультфильма, то каким?'],
+    ['могла', 'мог'], ['хотела', 'хотел'], ['захотела', 'захотел'], ['выбрала', 'выбрал'], ['полетела', 'полетел'], ['заказала', 'заказал'],
+    ['придумала', 'придумал'], ['дала', 'дал'], ['совершала', 'совершал'], ['мечтала', 'мечтал'], ['была', 'был'], ['стала', 'стал'],
+    ['невидимой', 'невидимым'], ['героиней', 'героем'], ['благодарна', 'благодарен'], ['заняла', 'занял'], ['изменила', 'изменил'],
+    ['показала', 'показал'], ['сделала', 'сделал'], ['взяла', 'взял'], ['выиграла', 'выиграл'], ['подумала', 'подумал'], ['сказала', 'сказал'],
+    ['запомнила', 'запомнил'], ['делала', 'делал'], ['маленькой', 'маленьким'], ['поставила', 'поставил'], ['почувствовала', 'почувствовал'],
+    ['занялась', 'занялся'], ['знала', 'знал'], ['поехала', 'поехал'], ['должна', 'должен'], ['счастливой', 'счастливым'], ['успешной', 'успешным'], ['изменилась', 'изменился'], ['работала', 'работал']
+  ].map(function (p) { return [new RegExp('(^|[^А-Яа-яЁё])' + p[0] + '(?![А-Яа-яЁё])', 'g'), '$1' + p[1]]; });
+  function masc(t) { MASC.forEach(function (r) { t = t.replace(r[0], r[1]); }); return t; }
+  window.__mascTest = masc;
+
+  /* ---------- отправка партнёру: Telegram / пуш / ntfy, иначе «поделиться» ---------- */
+  function who(cb) {
+    var prof = lsGet('ds3-profile', {});
+    function out(p) { p = p || {}; return { her: p.herName || C.herName || 'Ира', him: p.himName || C.himName || 'Он', chatHer: p.tgChatHer || C.tgChatHer || '', ntfy: p.ntfyHer || C.ntfyHer || '' }; }
+    if (C.firebaseUrl) fetch(C.firebaseUrl.replace(/\/+$/, '') + '/profile.json').then(function (r) { return r.json(); }).then(function (p) { cb(out(p || prof)); }).catch(function () { cb(out(prof)); });
+    else cb(out(prof));
+  }
+  function sendQuestion(role, text, done) {
+    who(function (n) {
+      var to = role === 'her' ? 'him' : 'her', msg = '❓ ' + (role === 'her' ? n.her : n.him) + ' задаёт вопрос:\n' + text, sent = false;
+      if (C.pushUrl) { fetch(C.pushUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ to: to, title: 'Вопрос ♥', body: msg.replace(/\n/g, ' · ').slice(0, 280) }) }).catch(function () {}); sent = true; }
+      var chat = to === 'him' ? C.tgChat : n.chatHer;
+      if (C.tgToken && chat && !(to === 'him' && C.pushUrl)) { fetch('https://api.telegram.org/bot' + C.tgToken + '/sendMessage?chat_id=' + encodeURIComponent(chat) + '&text=' + encodeURIComponent(msg)).catch(function () {}); sent = true; }
+      if (to === 'her' && n.ntfy) { fetch('https://ntfy.sh/' + encodeURIComponent(n.ntfy), { method: 'POST', body: msg }).catch(function () {}); sent = true; }
+      done(sent);
+    });
+  }
+
+  /* ---------- разметка панели (одна на обе страницы) ---------- */
+  function panelHtml(p, role) {
+    var cats = [['all', 'Любой'], ['light', 'Лёгкие'], ['deep', 'Глубже'], ['fun', 'Весёлые'], ['love', 'Романтика'], ['mem', 'Воспоминания'], ['dream', 'Мечты'], ['game', 'Игры'], ['gen', 'Генератор ✨']];
+    return '<div class="hero small"><div class="inner"><h1>Генератор вопросов</h1><p>Нажми, и получишь тему для разговора. Готовые вопросы не повторяются, а генератор придумывает новые без конца.</p></div></div>' +
+      '<div class="band"><div class="inner">' +
+      '<div class="chips" id="' + p + '-chips">' + cats.map(function (c, i) { return '<button class="pill" type="button" data-cat="' + c[0] + '" aria-pressed="' + (i === 0) + '">' + c[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="chips qwho" id="' + p + '-who"><span class="lbl">Спросить:</span><button class="pill" type="button" data-who="her" aria-pressed="' + (role === 'him') + '">её</button><button class="pill" type="button" data-who="him" aria-pressed="' + (role === 'her') + '">его</button></div>' +
+      '<div class="qcard" id="' + p + '-card" aria-live="polite"><div class="kind" id="' + p + '-kind">Вопрос</div><p class="qtext" id="' + p + '-text">Нажми «Сгенерировать».</p></div>' +
+      '<div class="qbar"><button class="btn outline" type="button" id="' + p + '-prev" aria-label="Предыдущий вопрос" disabled>←</button><button class="btn blue" type="button" id="' + p + '-next">Сгенерировать</button><button class="btn outline qfav" type="button" id="' + p + '-fav" aria-pressed="false" aria-label="Сохранить вопрос">♡</button></div>' +
+      '<div class="qmeta"><button class="textlink" type="button" id="' + p + '-share">' + (role === 'her' ? 'Отправить ему' : 'Отправить ей') + '</button><span class="small muted" id="' + p + '-count"></span></div>' +
+      '<div class="qstatus" id="' + p + '-status" role="status"></div>' +
+      '<details class="qfavs"><summary>Сохранённые (<span id="' + p + '-favn">0</span>)</summary><ul class="rows" id="' + p + '-favs"></ul></details>' +
+      '</div></div>';
+  }
+
+  /* ---------- сам генератор ---------- */
+  function genQuestion(recent) {
+    var t, tries = 0;
+    do { t = pick(GEN)(); tries++; } while (recent.indexOf(t) !== -1 && tries < 12);
+    return { id: 'g:' + t, cat: 'gen', t: t };
+  }
+  function initGen(p, role) {
+    var g = function (x) { return document.getElementById(p + '-' + x); };
+    var chips = g('chips'), who_ = g('who'), card = g('card'), kindEl = g('kind'), textEl = g('text'), nextB = g('next'), prevB = g('prev'), favB = g('fav'), shareB = g('share'), countEl = g('count'), statusEl = g('status'), favsEl = g('favs'), favnEl = g('favn');
+    if (!chips || !card) return;
+    var cat = 'all', gender = role === 'her' ? 'him' : 'her', hist = [], pos = -1, qtimer = null, recent = [];
+    function say(m) { statusEl.textContent = m || ''; }
+    function shown(item) { return gender === 'him' ? masc(item.t) : item.t; }
+    function anim() {
+      card.classList.add('typing'); clearTimeout(qtimer);
+      qtimer = setTimeout(function () { card.classList.remove('typing'); card.classList.remove('qin'); void card.offsetWidth; card.classList.add('qin'); vibe('pop'); }, 650);
+    }
+    function favs() { return lsGet(QFAV, []); }
+    function isFav(item) { return favs().some(function (f) { return f.id === item.id; }); }
+    function bankLeft(cats) {
+      var used = lsGet(QUSED, {}), left = 0, total = 0;
+      cats.forEach(function (c) { Q[c].forEach(function (t, i) { total++; if (!used[c + i]) left++; }); });
+      return { left: left, total: total };
+    }
+    function paintCount() {
+      if (cat === 'gen') { countEl.textContent = 'Генератор: бесконечно ✨'; return; }
+      var b = bankLeft(cat === 'all' ? BANKS : [cat]);
+      countEl.textContent = cat === 'all' ? 'Осталось готовых: ' + b.left + ' из ' + b.total + ' · плюс генератор' : 'Осталось ' + b.left + ' из ' + b.total;
+    }
+    function paintFavs() {
+      var list = favs(); favnEl.textContent = list.length;
+      favsEl.innerHTML = list.length ? list.map(function (f) {
+        return '<li class="row"><span class="name" data-showfav="' + esc(f.id) + '">' + esc(shown(f)) + '<br><span class="meta">' + esc(QNAME[f.cat] || 'Вопрос') + '</span></span><button class="del" type="button" data-delfav="' + esc(f.id) + '" aria-label="Убрать из сохранённых">×</button></li>';
+      }).join('') : '<li class="empty">Нажми ♡ у вопроса, чтобы сохранить его сюда.</li>';
+    }
+    function render(item, animate) {
+      kindEl.textContent = QNAME[item.cat] || 'Вопрос'; textEl.textContent = shown(item);
+      var f = isFav(item); favB.setAttribute('aria-pressed', f ? 'true' : 'false'); favB.textContent = f ? '♥' : '♡';
+      prevB.disabled = pos <= 0; paintCount();
+      if (animate) anim();
+    }
+    function current() { return hist[pos]; }
+    function generate() {
+      var item;
+      if (cat === 'gen' || (cat === 'all' && Math.random() < 0.25)) item = genQuestion(recent);
+      else {
+        var cats = cat === 'all' ? BANKS : [cat], used = lsGet(QUSED, {}), pool = [];
+        cats.forEach(function (c) { Q[c].forEach(function (t, i) { if (!used[c + i]) pool.push({ id: c + i, cat: c, t: t }); }); });
+        if (!pool.length) {
+          cats.forEach(function (c) { Q[c].forEach(function (t, i) { delete used[c + i]; }); });
+          cats.forEach(function (c) { Q[c].forEach(function (t, i) { pool.push({ id: c + i, cat: c, t: t }); }); });
+          say('Все вопросы прошли, начинаем заново ♥');
+        } else say('');
+        item = pool[Math.floor(Math.random() * pool.length)];
+        used[item.id] = 1; lsSet(QUSED, used);
+      }
+      recent.push(item.t); if (recent.length > 40) recent.shift();
+      hist.push(item); pos = hist.length - 1;
+      render(item, true);
+    }
+    chips.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-cat]'); if (!b) return;
+      cat = b.dataset.cat;
+      $$('[data-cat]', chips).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      generate();
+    });
+    who_.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-who]'); if (!b) return;
+      gender = b.dataset.who;
+      $$('[data-who]', who_).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      if (current()) render(current(), false);
+      paintFavs();
+    });
+    nextB.addEventListener('click', generate);
+    prevB.addEventListener('click', function () { if (pos > 0) { pos--; render(current(), true); say(''); } });
+    favB.addEventListener('click', function () {
+      var it = current(); if (!it) { say('Сначала сгенерируй вопрос.'); return; }
+      var list = favs(), i = list.findIndex(function (f) { return f.id === it.id; });
+      if (i >= 0) list.splice(i, 1); else list.unshift({ id: it.id, cat: it.cat, t: it.t });
+      lsSet(QFAV, list); render(it, false); paintFavs(); say(i >= 0 ? 'Убрано из сохранённых' : 'Сохранено ♥');
+    });
+    favsEl.addEventListener('click', function (e) {
+      var d = e.target.closest('[data-delfav]');
+      if (d) { lsSet(QFAV, favs().filter(function (f) { return f.id !== d.dataset.delfav; })); paintFavs(); if (current()) render(current(), false); return; }
+      var sh = e.target.closest('[data-showfav]');
+      if (sh) { var f = favs().filter(function (x) { return x.id === sh.dataset.showfav; })[0]; if (f) { hist.push(f); pos = hist.length - 1; render(f, true); window.scrollTo(0, 0); } }
+    });
+    shareB.addEventListener('click', function () {
+      var it = current(); if (!it) { say('Сначала сгенерируй вопрос.'); return; }
+      var text = shown(it);
+      sendQuestion(role, text, function (sent) {
+        if (sent) { say('Отправлено ♥'); vibe('ding'); return; }
+        if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
+        if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { say('Скопировано. Отправь в чат ♥'); }, function () { say('Не получилось скопировать.'); });
+        else say('Выдели вопрос и скопируй вручную.');
+      });
+    });
+    paintFavs(); paintCount();
+  }
+
+  /* ---------- встраиваем в страницу ---------- */
+  var herPanel = $('#s-her [data-panel="question"]');
+  if (herPanel) {
+    herPanel.innerHTML = panelHtml('q', 'her');
+    var hp = $('#s-her [data-tab="question"]'); if (hp) hp.textContent = 'Вопросы';
+    initGen('q', 'her');
+  }
+  var himSec = $('#s-him'), bar = himSec && $('.navtabs', himSec);
+  if (himSec && bar && !$('[data-tab="gen"]', himSec)) {
+    var pill = document.createElement('button');
+    pill.className = 'pill'; pill.setAttribute('role', 'tab'); pill.dataset.tab = 'gen'; pill.setAttribute('aria-selected', 'false'); pill.textContent = 'Вопросы';
+    var before = $('[data-tab="profile"]', bar); if (before) bar.insertBefore(pill, before); else bar.appendChild(pill);
+    var panel = document.createElement('div'); panel.dataset.panel = 'gen'; panel.hidden = true; panel.innerHTML = panelHtml('hq', 'him');
+    himSec.appendChild(panel);
+    pill.addEventListener('click', function () {
+      $$('.pill', bar).forEach(function (x) { x.setAttribute('aria-selected', x === pill ? 'true' : 'false'); });
+      $$('[data-panel]', himSec).forEach(function (pn) { pn.hidden = pn.dataset.panel !== 'gen'; });
+      window.scrollTo(0, 0);
+    });
+    initGen('hq', 'him');
+  }
+})();
+</script>
 </body>
 </html>
