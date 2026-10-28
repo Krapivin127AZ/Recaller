@@ -323,6 +323,8 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
 .rank{width:32px;text-align:center;font-size:22px;font-weight:700;color:var(--slate);flex:0 0 auto}
 .avg{font-size:28px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;flex:0 0 auto}
 .row.rt{align-items:flex-start}
+.pill.has::after{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b30;margin-left:6px}
+.dform{display:grid;gap:10px;margin-top:16px}
 </style>
 </head>
 <body>
@@ -348,6 +350,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
       <span class="nav-title" id="her-nav"></span>
       <div class="navtabs" role="tablist">
         <button class="pill" role="tab" data-tab="pick" aria-selected="true">Выбор</button>
+        <button class="pill" role="tab" data-tab="date" aria-selected="false">Свидание</button>
         <button class="pill" role="tab" data-tab="question" aria-selected="false">Вопрос</button>
         <button class="pill" role="tab" data-tab="visited" aria-selected="false">Были</button>
         <button class="pill" role="tab" data-tab="rating" aria-selected="false">Рейтинг</button>
@@ -406,6 +409,11 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
     </div></div>
   </div>
 
+  <div data-panel="date" hidden>
+    <div class="hero small"><div class="inner"><h1>Свидание</h1><p>Запросы на свидание. Партнёр может принять или изменить.</p></div></div>
+    <div class="band"><div class="inner"><div id="her-date"></div></div></div>
+  </div>
+
   <div data-panel="question" hidden>
     <div class="hero small"><div class="inner"><h1>Вопрос</h1><p>Для разговора на свидании. Нажми, и появится новый.</p></div></div>
     <div class="band"><div class="inner">
@@ -428,6 +436,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
       <span class="nav-title"><span class="av sm" id="av-him-sm"></span><span id="him-who"></span></span>
       <div class="navtabs" role="tablist">
         <button class="pill" role="tab" data-tab="log" aria-selected="true">Она выбрала</button>
+        <button class="pill" role="tab" data-tab="date" aria-selected="false">Свидание</button>
         <button class="pill" role="tab" data-tab="list" aria-selected="false">Список</button>
         <button class="pill" role="tab" data-tab="visited" aria-selected="false">Были</button>
         <button class="pill" role="tab" data-tab="rating" aria-selected="false">Рейтинг</button>
@@ -477,6 +486,11 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
       <h2 class="sec">Наш топ</h2><ul class="rows" id="him-rt-top"></ul>
       <h2 class="sec">Ещё без оценок</h2><ul class="rows" id="him-rt-todo"></ul>
     </div></div>
+  </div>
+
+  <div data-panel="date" hidden>
+    <div class="hero small"><div class="inner"><h1>Свидание</h1><p>Запросы на свидание. Партнёр может принять или изменить.</p></div></div>
+    <div class="band"><div class="inner"><div id="him-date"></div></div></div>
   </div>
 
   <div data-panel="profile" hidden>
@@ -603,12 +617,12 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
   }
   function recordChoice(c) {
     c.by = adminView ? 'him' : 'her'; var local = lsGet(LS.choices, []); c.key = String(c.ts); local.push(c); lsSet(LS.choices, local);
-    plan = { itemId: c.itemId, name: c.name, type: c.type, when: c.when, ts: c.ts }; lsSet(LS.plan, plan);
+    plan = { itemId: c.itemId, name: c.name, type: c.type, when: c.when, ts: c.ts, by: c.by, status: 'pending' }; lsSet(LS.plan, plan);
     if (useDb) {
       dbReq('choices', 'POST', { itemId: c.itemId, name: c.name, type: c.type, when: c.when, ts: c.ts, by: c.by }).catch(function () {});
       dbReq('plan', 'PUT', plan).catch(function () {});
     }
-    if (!adminView) tg('💘 ' + P('herName') + ' выбрала: ' + c.name + ' (' + KIND[c.type] + ')\nКогда: ' + fmtWhen(c.when));
+    if (!adminView) tg('💘 ' + P('herName') + ' предлагает свидание: ' + c.name + ' (' + KIND[c.type] + ')\nКогда: ' + fmtWhen(c.when));
   }
   function recordRoll(item, src) {
     if (adminView) return;
@@ -748,7 +762,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
     var ticketEl = stage.querySelector('.ticket'); var old = ticketEl.querySelector('.actions'); if (old) old.remove();
     var box = document.createElement('div'); box.className = 'plan';
     box.innerHTML = '<div class="actions" style="display:block"><label for="when">Когда пойдём?</label><input type="datetime-local" id="when"><div class="err" id="whenErr" role="alert"></div>' +
-      '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px"><button class="btn blue" type="button" id="confirm">Договорились</button><button class="btn outline" type="button" id="back">Выбрать другое</button></div></div>';
+      '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px"><button class="btn blue" type="button" id="confirm">Отправить запрос</button><button class="btn outline" type="button" id="back">Выбрать другое</button></div></div>';
     ticketEl.appendChild(box);
     $('#back').addEventListener('click', function () { roll(lastKind); });
     $('#confirm').addEventListener('click', function () {
@@ -757,10 +771,10 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
       recordChoice({ itemId: current.id, name: current.name, type: current.type, when: v, ts: Date.now() });
       var delivered = useDb || tgOn;
       var msg = 'Я выбрала: ' + current.name + '. Когда: ' + fmtWhen(v) + ' ♥';
-      box.innerHTML = '<div class="actions" style="display:block"><p class="done-text">Договорились<strong>' + esc(current.name) + '</strong>' + esc(fmtWhen(v)) + '</p>' +
+      box.innerHTML = '<div class="actions" style="display:block"><p class="done-text">Запрос отправлен<strong>' + esc(current.name) + '</strong>' + esc(fmtWhen(v)) + '</p>' +
         '<div class="cd" data-cd="' + esc(v) + '"></div>' +
-        (delivered ? '<p class="muted" style="margin-top:14px">Я уже знаю, что ты выбрала ♥</p>' : '<p class="muted" style="margin-top:14px">Скопируй и отправь мне ♥</p>') +
-        '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:16px"><button class="btn blue" type="button" data-ics>Добавить в календарь</button>' +
+        (delivered ? '<p class="muted" style="margin-top:14px">Запрос ждёт ответа на вкладке «Свидание» ♥</p>' : '<p class="muted" style="margin-top:14px">Скопируй и отправь мне ♥</p>') +
+        '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:16px"><button class="btn blue" type="button" data-gotab="date">Открыть «Свидание»</button>' +
         (delivered ? '' : '<button class="btn outline" type="button" id="copyAns">Скопировать ответ</button>') + '</div></div>';
       burst(); renderPlan(); updateCountdowns();
       var cb = $('#copyAns');
@@ -859,6 +873,69 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
     });
   }
   function renderHim() { renderLog(); renderLists(); renderVisited('him', true); renderRating('him', 'him'); renderPlan(); }
+
+  /* ---------- вкладка «Свидание»: запрос, принять, изменить ---------- */
+  var editing = {};
+  function dateWho(pf) { return (pf === 'him' || adminView) ? 'him' : 'her'; }
+  function nameOf(w) { return w === 'her' ? (P('herName') || 'Ира') : (P('himName') || 'Он'); }
+  function savePlan(pl) { plan = pl; lsSet(LS.plan, plan); if (useDb) dbReq('plan', 'PUT', plan).catch(function () {}); }
+  function updateBadges() {
+    ['her', 'him'].forEach(function (pf) {
+      var b = $('#s-' + pf + ' [data-tab="date"]');
+      if (b) b.classList.toggle('has', !!(plan && plan.when && plan.status === 'pending' && plan.by !== dateWho(pf)));
+    });
+  }
+  function renderDate(pf, force) {
+    if (editing[pf] && !force) return;
+    var who = dateWho(pf), box = $('#' + pf + '-date'), pend = plan && plan.status === 'pending', h = '';
+    if (!plan || !plan.when) h = '<div class="note">Пока нет свидания. Выбери место на вкладке «Выбор» и отправь запрос.</div>';
+    else {
+      var mine = plan.by === who;
+      var title = !pend ? 'Свидание принято ♥' : mine ? 'Ждём ответа' : 'Запрос на свидание' + (plan.edited ? ' · изменено' : '');
+      h = '<div class="plancard' + (pend && !mine ? ' today' : '') + '"><div class="kind">' + title + '</div><div class="what">' + esc(plan.name) + '</div>' +
+        '<div class="when">' + KIND[plan.type] + ' · ' + esc(fmtWhen(plan.when)) + '</div>' +
+        '<div class="when">' + (pend ? (mine ? 'Отправлено тобой' : 'От: ' + esc(nameOf(plan.by || 'her'))) : 'Принято: ' + esc(nameOf(plan.acceptedBy || plan.by || 'her'))) + ' · ' + esc(fmtTs(plan.ts)) + '</div>';
+      if (!pend) h += '<div class="cd" data-cd="' + esc(plan.when) + '"></div>';
+      if (editing[pf]) {
+        h += '<div class="dform"><label class="flabel" for="' + pf + '-ei">Куда</label><select id="' + pf + '-ei">' + items.map(function (i) { return '<option value="' + esc(i.id) + '"' + (i.id === plan.itemId ? ' selected' : '') + '>' + esc(i.name) + ' (' + KIND[i.type] + ')</option>'; }).join('') + '</select>' +
+          '<label class="flabel" for="' + pf + '-ew">Когда</label><input type="datetime-local" id="' + pf + '-ew" value="' + esc(plan.when) + '">' +
+          '<div class="acts"><button class="btn blue" type="button" data-dact="save">Отправить изменения</button><button class="btn outline" type="button" data-dact="cancel">Отмена</button></div></div>';
+      } else {
+        h += '<div class="acts">';
+        if (pend && !mine) h += '<button class="btn blue" type="button" data-dact="accept">Принять ♥</button>';
+        if (!pend) h += '<button class="btn blue" type="button" data-ics>Добавить в календарь</button>';
+        h += '<button class="btn outline" type="button" data-dact="edit">Изменить</button>';
+        if (pend && mine) h += '<button class="textlink" type="button" data-dact="cancelreq">Отменить запрос</button>';
+        if (!pend) h += '<button class="textlink" type="button" data-replan>Выбрать заново</button>';
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    box.innerHTML = h;
+  }
+  document.addEventListener('click', function (e) {
+    var g = e.target.closest('[data-gotab]');
+    if (g) { var t = g.closest('section').querySelector('.navtabs [data-tab="' + g.dataset.gotab + '"]'); if (t) t.click(); return; }
+    var b = e.target.closest('[data-dact]'); if (!b || !plan) return;
+    var sec = b.closest('section'), pf = sec && sec.id === 's-him' ? 'him' : 'her', who = dateWho(pf), a = b.dataset.dact, notify = who === 'her' && !adminView, hn = P('herName') || 'Ира';
+    if (a === 'edit') { editing[pf] = true; renderDate(pf, true); return; }
+    if (a === 'cancel') { editing[pf] = false; renderDate(pf, true); return; }
+    if (a === 'accept') {
+      savePlan(Object.assign({}, plan, { status: 'accepted', acceptedBy: who, acceptedTs: Date.now() }));
+      if (notify) tg('✅ ' + hn + ' приняла свидание: ' + plan.name + '\nКогда: ' + fmtWhen(plan.when));
+    } else if (a === 'save') {
+      var when = $('#' + pf + '-ew').value, it = items.filter(function (i) { return i.id === $('#' + pf + '-ei').value; })[0] || { id: plan.itemId, name: plan.name, type: plan.type };
+      if (!when) return;
+      savePlan({ itemId: it.id, name: it.name, type: it.type, when: when, ts: Date.now(), by: who, status: 'pending', edited: true });
+      editing[pf] = false;
+      if (notify) tg('✏️ ' + hn + ' изменила свидание: ' + it.name + '\nКогда: ' + fmtWhen(when) + '\nЖдёт твоего ответа.');
+    } else if (a === 'cancelreq') { clearPlan(); if (notify) tg('↩️ ' + hn + ' отменила запрос'); }
+    renderPlan();
+  });
+  setInterval(function () {
+    if (document.hidden || !useDb || !$('#s-landing').hidden) return;
+    load().then(function () { renderPlan(); });
+  }, 15000);
 
   /* ---------- наш рейтинг ---------- */
   var MEDALS = ['🥇', '🥈', '🥉'];
@@ -985,7 +1062,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
       (canReplan ? '<button class="textlink" type="button" data-replan>Выбрать заново</button>' : '') + '</div>' + helpHtml();
   }
   function renderPlan() {
-    var ok = plan && plan.when && (new Date(plan.when).getTime() - Date.now() > -3 * 3600000);
+    var ok = plan && plan.when && plan.status !== 'pending' && (new Date(plan.when).getTime() - Date.now() > -3 * 3600000);
     var her = $('#plan-banner'), him = $('#him-plan');
     her.hidden = him.hidden = !ok;
     if (ok) {
@@ -995,7 +1072,18 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
       if (hoOpen) her.querySelector('details').open = true;
       if (hiOpen) him.querySelector('details').open = true;
       her.classList.toggle('today', isToday(plan.when)); him.classList.toggle('today', isToday(plan.when));
-    } else { her.innerHTML = ''; him.innerHTML = ''; }
+    } else {
+      her.innerHTML = ''; him.innerHTML = '';
+      ['her', 'him'].forEach(function (pf) {
+        var el = pf === 'her' ? her : him;
+        el.classList.remove('today');
+        if (plan && plan.when && plan.status === 'pending' && plan.by !== dateWho(pf)) {
+          el.hidden = false; el.classList.add('today');
+          el.innerHTML = '<div class="kind">Новое уведомление</div><div class="what">Запрос на свидание</div><div class="when">' + esc(nameOf(plan.by || 'her')) + ': ' + esc(plan.name) + '</div><div class="acts"><button class="btn blue" type="button" data-gotab="date">Открыть</button></div>';
+        }
+      });
+    }
+    renderDate('her'); renderDate('him'); updateBadges();
     updateCountdowns();
   }
   document.addEventListener('click', function (e) {
