@@ -2253,5 +2253,369 @@ body{background:linear-gradient(180deg,var(--mist),color-mix(in srgb,var(--mist)
   }
 })();
 </script>
+  <style>
+[data-tab="rate"]::before{content:'⭐'}[data-tab="idea"]::before{content:'💡'}
+.fbar{display:grid;gap:8px;margin:0 0 20px;background:var(--white);border-radius:var(--r,28px);padding:16px 20px}
+.fbar .grp{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fbar .lbl{font-size:13px;color:var(--slate);min-width:84px}
+.fbar .info{font-size:13px;color:var(--slate);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tagtxt{display:block;font-size:12px;color:var(--slate);margin-top:2px}
+.tagbtn{background:transparent;border:0;font-size:18px;width:36px;height:36px;border-radius:50%;flex:0 0 auto}
+.tagbtn:hover{background:var(--ctl)}
+.rrow{display:grid!important;gap:6px;align-items:stretch!important}
+.rtop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.rl2{display:flex;align-items:center;gap:8px;font-size:14px}
+.who2{min-width:52px;color:var(--slate);font-size:13px}
+.hearts{display:inline-flex;gap:0}
+.hh{background:none;border:0;padding:2px 3px;font-size:22px;line-height:1;color:var(--steel)}
+.hh.on{color:var(--blue)}
+button.hh:active{transform:scale(.8)}
+.bd2{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e5484d;margin-left:7px;vertical-align:middle}
+</style>
+<script>
+(function () {
+  if (window.__dsx) return; window.__dsx = 1;
+  var C = window.CONFIG || {}, D = window.DS; if (!D) return;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  function lsGet(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function noop() {}
+  function arr(x) { return Array.isArray(x) ? x : Object.keys(x || {}).map(function (k) { return x[k]; }); }
+  var useDb = !!C.firebaseUrl;
+  function db(p, m, b) {
+    return fetch(C.firebaseUrl.replace(/\/+$/, '') + '/' + p + '.json', { method: m || 'GET', body: b === undefined ? undefined : JSON.stringify(b) })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+  }
+  var herSec = $('#s-her'), himSec = $('#s-him');
+  if (!herSec || !himSec) return;
+  var KIND = { place: 'Место', venue: 'Заведение', custom: 'Своё' };
+  var TAGS = {}, RATES = {}, SUGS = [], MEET = 0;
+
+  /* ---------- общие вещи ---------- */
+  var TG = {
+    w: { label: 'Где', o: [['home', '🏠 Дома'], ['out', '🌳 На улице']] },
+    c: { label: 'Бюджет', o: [['cheap', '💸 Дёшево'], ['pricey', '💎 Дорого']] },
+    m: { label: 'Настроение', o: [['calm', '😌 Спокойное'], ['active', '⚡ Активное'], ['rom', '💗 Романтика'], ['fun', '😄 Весёлое']] }
+  };
+  function lab(k, v) { var o = TG[k].o.filter(function (x) { return x[0] === v; })[0]; return o ? o[1] : ''; }
+  function tagText(id) {
+    var t = TAGS[id]; if (!t) return ''; var a = [];
+    if (t.w) a.push(lab('w', t.w)); if (t.c) a.push(lab('c', t.c));
+    arr(t.m).forEach(function (x) { a.push(lab('m', x)); });
+    return a.filter(Boolean).join(' · ');
+  }
+  function clean(st) {
+    var o = {}; if (st.w) o.w = st.w; if (st.c) o.c = st.c; if (st.m && st.m.length) o.m = st.m.slice();
+    return Object.keys(o).length ? o : null;
+  }
+  function setTags(id, st) {
+    var o = clean(st); if (o) TAGS[id] = o; else delete TAGS[id];
+    lsSet('ds3-tags', TAGS);
+    if (useDb) db('tags/' + id, o ? 'PUT' : 'DELETE', o || undefined).catch(noop);
+  }
+  function picker(box, st) {
+    function draw() {
+      box.innerHTML = Object.keys(TG).map(function (k) {
+        return '<div class="flabel">' + TG[k].label + '</div><div class="chips" style="justify-content:flex-start;margin:6px 0 10px">' +
+          TG[k].o.map(function (o) {
+            var on = k === 'm' ? (st.m || []).indexOf(o[0]) >= 0 : st[k] === o[0];
+            return '<button class="pill" type="button" data-tp="' + k + ':' + o[0] + '" aria-pressed="' + on + '">' + o[1] + '</button>';
+          }).join('') + '</div>';
+      }).join('');
+    }
+    box.onclick = function (e) {
+      var b = e.target.closest('[data-tp]'); if (!b) return;
+      var p = b.dataset.tp.split(':'), k = p[0], v = p[1];
+      if (k === 'm') { st.m = st.m || []; var i = st.m.indexOf(v); if (i >= 0) st.m.splice(i, 1); else st.m.push(v); }
+      else st[k] = st[k] === v ? undefined : v;
+      draw();
+    };
+    draw();
+  }
+  function addTab(sec, tab, label, after, html) {
+    var bar = $('.navtabs', sec); if (!bar || $('[data-tab="' + tab + '"]', bar)) return;
+    var p = document.createElement('button'); p.className = 'pill'; p.setAttribute('role', 'tab'); p.dataset.tab = tab; p.setAttribute('aria-selected', 'false'); p.textContent = label;
+    var ref = $('[data-tab="' + after + '"]', bar);
+    if (ref && ref.nextSibling) bar.insertBefore(p, ref.nextSibling); else bar.appendChild(p);
+    var panel = document.createElement('div'); panel.dataset.panel = tab; panel.hidden = true; panel.innerHTML = html; sec.appendChild(panel);
+    p.addEventListener('click', function () {
+      $$('.pill', bar).forEach(function (x) { x.setAttribute('aria-selected', x === p ? 'true' : 'false'); });
+      $$('[data-panel]', sec).forEach(function (pn) { pn.hidden = pn.dataset.panel !== tab; });
+      window.scrollTo(0, 0);
+    });
+  }
+
+  /* ---------- 1. фильтры при выборе ---------- */
+  var F = lsGet('ds3-filter', { w: [], c: [], m: [] });
+  function match(it) {
+    var t = TAGS[it.id] || {};
+    if (F.w.length && F.w.indexOf(t.w) < 0) return false;
+    if (F.c.length && F.c.indexOf(t.c) < 0) return false;
+    if (F.m.length && !arr(t.m).some(function (x) { return F.m.indexOf(x) >= 0; })) return false;
+    return true;
+  }
+  window.DS_FILTER = match;
+  window.DS_FILTER_ON = function () { return F.w.length + F.c.length + F.m.length > 0; };
+
+  var herPick = $('[data-panel="pick"]', herSec), pickInner = herPick && $('.band .inner', herPick), fbar = null;
+  if (pickInner) {
+    fbar = document.createElement('div'); fbar.className = 'fbar';
+    pickInner.insertBefore(fbar, $('.choices', pickInner));
+    fbar.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-f]'), r = e.target.closest('[data-freset]');
+      if (r) { F = { w: [], c: [], m: [] }; }
+      else if (b) {
+        var p = b.dataset.f.split(':'), k = p[0], v = p[1], i = F[k].indexOf(v);
+        if (i >= 0) F[k].splice(i, 1); else F[k].push(v);
+      } else return;
+      lsSet('ds3-filter', F); renderFilter();
+      var av = $('#avoid'); if (av) av.dispatchEvent(new Event('change'));
+    });
+  }
+  function renderFilter() {
+    if (!fbar) return;
+    var its = D.items() || [], on = window.DS_FILTER_ON();
+    var ok = its.filter(match).length, none = its.filter(function (i) { return !TAGS[i.id]; }).length;
+    fbar.innerHTML = Object.keys(TG).map(function (k) {
+      return '<div class="grp"><span class="lbl">' + TG[k].label + '</span>' + TG[k].o.map(function (o) {
+        return '<button class="pill" type="button" data-f="' + k + ':' + o[0] + '" aria-pressed="' + (F[k].indexOf(o[0]) >= 0) + '">' + o[1] + '</button>';
+      }).join('') + '</div>';
+    }).join('') + '<div class="info"><span>' + (on ? 'Подходит: ' + ok + ' из ' + its.length : 'Фильтры выключены') + (on && none ? ' · без тегов (скрыты): ' + none : '') + '</span>' +
+      (on ? '<button class="textlink" type="button" data-freset>Сбросить</button>' : '') + '</div>';
+  }
+
+  /* редактор тегов на твоей вкладке «Список» */
+  var tm = document.createElement('div'); tm.className = 'overlay'; tm.id = 'tagm'; tm.hidden = true;
+  tm.innerHTML = '<div class="card" role="dialog" aria-modal="true"><h2 id="tagm-t">Теги</h2><div id="tagm-b"></div><div class="actions"><button class="btn blue" type="button" id="tagm-ok">Сохранить</button><button class="btn outline" type="button" id="tagm-x">Отмена</button></div></div>';
+  document.body.appendChild(tm);
+  var ed = {}, edId = null;
+  function decorate() {
+    $$('#list-place .row, #list-venue .row').forEach(function (r) {
+      if (r.dataset.tg) return;
+      var d = $('[data-del]', r), nm = $('.name', r); if (!d || !nm) return;
+      r.dataset.tg = '1';
+      var s = document.createElement('span'); s.className = 'tagtxt'; s.textContent = tagText(d.dataset.del) || 'Теги не заданы'; nm.appendChild(s);
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tagbtn'; b.dataset.tagedit = d.dataset.del; b.textContent = '🏷'; b.setAttribute('aria-label', 'Теги');
+      r.insertBefore(b, d);
+    });
+  }
+  function redecorate() {
+    $$('#list-place .row, #list-venue .row').forEach(function (r) {
+      delete r.dataset.tg; var t = $('.tagtxt', r), b = $('.tagbtn', r); if (t) t.remove(); if (b) b.remove();
+    });
+    decorate();
+  }
+  ['#list-place', '#list-venue'].forEach(function (s) { var el = $(s); if (el) new MutationObserver(decorate).observe(el, { childList: true }); });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tagedit]');
+    if (b) {
+      edId = b.dataset.tagedit; var t = TAGS[edId] || {}, it = (D.items() || []).filter(function (i) { return i.id === edId; })[0];
+      ed = { w: t.w, c: t.c, m: arr(t.m).slice() };
+      $('#tagm-t').textContent = 'Теги: ' + (it ? it.name : ''); picker($('#tagm-b'), ed); tm.hidden = false;
+    }
+  });
+  $('#tagm-x').addEventListener('click', function () { tm.hidden = true; });
+  $('#tagm-ok').addEventListener('click', function () { setTags(edId, ed); tm.hidden = true; redecorate(); renderFilter(); });
+
+  /* ---------- 2. «давно не виделись» ---------- */
+  var missId = null;
+  function dayWord(n) { var m = n % 10, h = n % 100; return n + ' ' + (m === 1 && h !== 11 ? 'день' : (m >= 2 && m <= 4 && (h < 12 || h > 14)) ? 'дня' : 'дней'); }
+  function lastMeet() {
+    var best = MEET || 0, v = D.visited() || {};
+    Object.keys(v).forEach(function (k) { var t = new Date(v[k] + 'T12:00:00').getTime(); if (!isNaN(t) && t > best && t <= Date.now()) best = t; });
+    var pl = D.plan();
+    if (pl && pl.status === 'ok' && pl.when) { var t2 = new Date(pl.when).getTime(); if (!isNaN(t2) && t2 <= Date.now() && t2 > best) best = t2; }
+    return best;
+  }
+  function missDays() {
+    var lm = lastMeet(); if (!lm) return null;
+    var days = Math.floor((Date.now() - lm) / 86400000); if (days < 14) return null;
+    var pl = D.plan();
+    if (pl && pl.status !== 'no' && pl.when && new Date(pl.when).getTime() > Date.now() - 3 * 3600000) return null;
+    return days;
+  }
+  function pickMiss(force) {
+    var its = D.items() || [], vis = D.visited() || {};
+    var cur = its.filter(function (i) { return i.id === missId; })[0];
+    if (cur && !force) return cur;
+    var pl = its.filter(match), fresh = pl.filter(function (i) { return !vis[i.id]; });
+    if (fresh.length) pl = fresh; if (!pl.length) pl = its; if (!pl.length) return null;
+    var c, n = 0; do { c = pl[Math.floor(Math.random() * pl.length)]; } while (pl.length > 1 && c.id === missId && ++n < 10);
+    missId = c.id; return c;
+  }
+  function renderMiss() {
+    var days = missDays(), html = '';
+    if (days !== null) {
+      var it = pickMiss(false);
+      if (it) html = '<div class="plancard pending"><span class="st">Давно не виделись</span><div class="what">Прошло ' + dayWord(days) + ' 💌</div>' +
+        '<div class="when">Как насчёт: <b>' + esc(it.name) + '</b> (' + KIND[it.type] + ')?' + (tagText(it.id) ? '<span class="tagtxt">' + esc(tagText(it.id)) + '</span>' : '') + '</div>' +
+        '<div class="acts"><button class="btn blue" type="button" data-miss="go">Предложить это ♥</button><button class="btn outline" type="button" data-miss="other">Другой вариант</button><button class="textlink" type="button" data-miss="met">Мы виделись</button></div></div>';
+      var me = D.ME(), k = 'ds3-miss-toast-' + me, td = new Date().toDateString();
+      if (it && lsGet(k, '') !== td && !document.getElementById('intro') && $('#s-landing').hidden) {
+        lsSet(k, td); var t = D.toast('Вы давно не виделись. Загляни в «Выбор» 💌'); if (t) t.onclick = function () { D.goTab(D.ME(), D.ME() === 'him' ? 'pick' : 'pick'); t.remove(); };
+      }
+    }
+    ['miss-a', 'miss-b'].forEach(function (id) { var el = document.getElementById(id); if (el) el.innerHTML = html; });
+  }
+  [['miss-a', pickInner], ['miss-b', $('[data-panel="log"] .band .inner', himSec)]].forEach(function (a) {
+    if (!a[1]) return; var d = document.createElement('div'); d.id = a[0]; a[1].insertBefore(d, a[1].firstChild);
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-miss]'); if (!b) return;
+    var a = b.dataset.miss;
+    if (a === 'other') { pickMiss(true); renderMiss(); }
+    else if (a === 'met') { MEET = Date.now(); lsSet('ds3-meet', MEET); if (useDb) db('lastmeet', 'PUT', MEET).catch(noop); renderMiss(); }
+    else if (a === 'go') {
+      var it = (D.items() || []).filter(function (i) { return i.id === missId; })[0]; if (!it) return;
+      D.goTab(D.ME(), 'date'); D.openForm({ itemId: it.id, type: it.type, name: it.name }, 'new');
+    }
+  });
+
+  /* ---------- 3. наш рейтинг ---------- */
+  function avg(r) { var a = []; ['her', 'him'].forEach(function (k) { if (r && r[k] && r[k].s) a.push(r[k].s); }); return a.length ? a.reduce(function (x, y) { return x + y; }) / a.length : 0; }
+  function fmt(a) { return String(Math.round(a * 10) / 10).replace('.', ','); }
+  function hearts(n, id, mine) {
+    var h = '';
+    for (var i = 1; i <= 5; i++) {
+      var c = i <= n ? '♥' : '♡', cls = 'hh' + (i <= n ? ' on' : '');
+      h += mine ? '<button class="' + cls + '" type="button" data-rt="' + esc(id) + ':' + i + '" aria-label="Оценка ' + i + '">' + c + '</button>' : '<span class="' + cls + '">' + c + '</span>';
+    }
+    return '<span class="hearts">' + h + '</span>';
+  }
+  var RATE_HTML = '<div class="hero small"><div class="inner"><h1>Наш рейтинг</h1><p>Оцени места, где были. Оценки видны вам обоим.</p></div></div><div class="band"><div class="inner"><div id="BOXID"></div></div></div>';
+  function renderRate() {
+    var its = D.items() || [], vis = D.visited() || {};
+    var rows = its.filter(function (i) { return vis[i.id] || RATES[i.id]; }).map(function (i) { return { i: i, a: avg(RATES[i.id]) }; });
+    rows.sort(function (x, y) { return (y.a - x.a) || x.i.name.localeCompare(y.i.name); });
+    var rated = rows.filter(function (r) { return r.a > 0; }).length;
+    ['her', 'him'].forEach(function (me) {
+      var box = document.getElementById('rate-' + me); if (!box) return;
+      var top = rows[0] && rows[0].a > 0 ? '<div class="plancard"><span class="st ok">Любимое у вас</span><div class="what">' + esc(rows[0].i.name) + '</div><div class="when">Средняя оценка ' + fmt(rows[0].a) + ' ♥</div></div>' : '';
+      var hp = $('.hero p', box.closest('[data-panel]')); if (hp) hp.textContent = rows.length ? 'Оценено ' + rated + ' из ' + rows.length + '. Нажми на сердечки, чтобы оценить.' : 'Сначала отметь место как «Были», потом оценишь его здесь.';
+      box.innerHTML = top + '<ul class="rows">' + (rows.length ? rows.map(function (r, n) {
+        var rt = RATES[r.i.id] || {}, medal = r.a > 0 && n < 3 ? ['🥇 ', '🥈 ', '🥉 '][n] : '';
+        return '<li class="row rrow"><div class="rtop"><span class="name">' + medal + esc(r.i.name) + '<span class="tagtxt">' + KIND[r.i.type] + (tagText(r.i.id) ? ' · ' + esc(tagText(r.i.id)) : '') + '</span></span><b>' + (r.a ? fmt(r.a) + ' ♥' : '') + '</b></div>' +
+          ['her', 'him'].map(function (k) {
+            return '<div class="rl2"><span class="who2">' + esc(D.who(k)) + '</span>' + hearts((rt[k] && rt[k].s) || 0, r.i.id, k === me) + '</div>';
+          }).join('') + '</li>';
+      }).join('') : '<li class="empty">Пока нечего оценивать.</li>') + '</ul>';
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-rt]'); if (!b) return;
+    var p = b.dataset.rt, i = p.lastIndexOf(':'), id = p.slice(0, i), s = +p.slice(i + 1), me = D.ME(), other = me === 'her' ? 'him' : 'her';
+    RATES[id] = RATES[id] || {};
+    var same = RATES[id][me] && RATES[id][me].s === s;
+    if (same) delete RATES[id][me]; else RATES[id][me] = { s: s, ts: Date.now() };
+    lsSet('ds3-rates', RATES);
+    if (useDb) db('ratings/' + id + '/' + me, same ? 'DELETE' : 'PUT', same ? undefined : RATES[id][me]).catch(noop);
+    var it = (D.items() || []).filter(function (x) { return x.id === id; })[0];
+    if (!same && it) D.notify(other, '⭐ ' + D.who(me) + ' оценил(а) «' + it.name + '» на ' + s + ' из 5');
+    renderRate();
+  });
+  addTab(herSec, 'rate', 'Рейтинг', 'visited', RATE_HTML.replace('BOXID', 'rate-her'));
+  addTab(himSec, 'rate', 'Рейтинг', 'visited', RATE_HTML.replace('BOXID', 'rate-him'));
+
+  /* ---------- 4. идеи от Иры и одобрение ---------- */
+  var IDEA_HTML = '<div class="hero small"><div class="inner"><h1>Идеи</h1><p>Предложи место или заведение. Он увидит и добавит в общий список.</p></div></div><div class="band"><div class="inner">' +
+    '<div class="pcard"><div class="chips" id="sg-kind" style="justify-content:flex-start;margin:0"><button class="pill" type="button" data-sk="place" aria-pressed="true">Место</button><button class="pill" type="button" data-sk="venue" aria-pressed="false">Заведение</button></div>' +
+    '<label class="flabel" for="sg-name">Название</label><input type="text" id="sg-name" maxlength="80" autocomplete="off" placeholder="Например, скалодром">' +
+    '<div id="sg-tags"></div><div class="muted small" id="sg-st" role="status"></div><div><button class="btn blue" type="button" id="sg-send">Предложить ♥</button></div></div>' +
+    '<h2 class="sec">Мои предложения</h2><ul class="rows" id="sg-list"></ul></div></div>';
+  addTab(herSec, 'idea', 'Идеи', 'rate', IDEA_HTML);
+  var sgKind = 'place', sgTags = {};
+  if ($('#sg-tags')) picker($('#sg-tags'), sgTags);
+  var kb = $('#sg-kind');
+  if (kb) kb.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-sk]'); if (!b) return; sgKind = b.dataset.sk;
+    $$('[data-sk]', kb).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+  });
+  function saveSugsLocal() { lsSet('ds3-sugs', SUGS); }
+  function renderIdeas() {
+    var el = $('#sg-list'); if (!el) return;
+    var mine = SUGS.filter(function (s) { return s.by === 'her'; }).sort(function (a, b) { return b.ts - a.ts; });
+    var ST = { new: 'Ждёт ответа', ok: 'Добавлено ♥', no: 'Отклонено' };
+    el.innerHTML = mine.length ? mine.map(function (s) {
+      return '<li class="row"><span class="name">' + esc(s.name) + '<span class="tagtxt">' + KIND[s.type] + ' · ' + ST[s.status || 'new'] + '</span></span><button class="del" type="button" data-sgdel="' + esc(s.key) + '" aria-label="Удалить">×</button></li>';
+    }).join('') : '<li class="empty">Пока ничего не предлагала.</li>';
+  }
+  var sb = $('#sg-send');
+  if (sb) sb.addEventListener('click', function () {
+    var name = $('#sg-name').value.trim(), st = $('#sg-st'); if (!name) { st.textContent = 'Напиши название.'; return; }
+    var s = { id: D.uid(), type: sgKind, name: name, by: 'her', ts: Date.now(), status: 'new' }, tg = clean(sgTags); if (tg) s.tags = tg;
+    st.textContent = 'Отправляю…';
+    function after() {
+      $('#sg-name').value = ''; sgTags.w = sgTags.c = undefined; sgTags.m = []; picker($('#sg-tags'), sgTags);
+      st.textContent = 'Отправлено ♥'; renderIdeas();
+      D.notify('him', '💡 ' + D.who('her') + ' предлагает ' + (sgKind === 'venue' ? 'заведение' : 'место') + ': ' + name + (tg ? '\n' + (function () { var o = TAGS[''], t = { w: tg.w, c: tg.c, m: tg.m }; var a = []; if (t.w) a.push(lab('w', t.w)); if (t.c) a.push(lab('c', t.c)); arr(t.m).forEach(function (x) { a.push(lab('m', x)); }); return a.join(' · '); })() : '') + '\nОткрой сайт, вкладка «Список»');
+    }
+    if (useDb) db('suggest', 'POST', s).then(function (r) { s.key = r.name; SUGS.push(s); after(); }).catch(function () { st.textContent = 'Не удалось отправить. Проверь правила Firebase.'; });
+    else { s.key = s.id; SUGS.push(s); saveSugsLocal(); after(); }
+  });
+  document.addEventListener('click', function (e) {
+    var d = e.target.closest('[data-sgdel]'); if (!d) return;
+    SUGS = SUGS.filter(function (s) { return s.key !== d.dataset.sgdel; });
+    if (useDb) db('suggest/' + d.dataset.sgdel, 'DELETE').catch(noop); else saveSugsLocal();
+    renderIdeas(); renderSug();
+  });
+
+  /* его сторона: список предложений */
+  var listInner = $('[data-panel="list"] .band .inner', himSec), sugBox = null;
+  if (listInner) { sugBox = document.createElement('div'); sugBox.id = 'sug-box'; listInner.insertBefore(sugBox, listInner.firstChild); }
+  function pending() { return SUGS.filter(function (s) { return (s.status || 'new') === 'new'; }); }
+  function renderSug() {
+    var p = pending(), lp = $('[data-tab="list"]', himSec), dot = lp && $('.bd2', lp);
+    if (lp) { if (p.length && !dot) { dot = document.createElement('i'); dot.className = 'bd2'; lp.appendChild(dot); } else if (!p.length && dot) dot.remove(); }
+    if (!sugBox) return;
+    sugBox.innerHTML = p.length ? '<h2 class="sec">Предложения Иры (' + p.length + ')</h2><ul class="rows">' + p.map(function (s) {
+      var tt = s.tags ? [s.tags.w && lab('w', s.tags.w), s.tags.c && lab('c', s.tags.c)].concat(arr(s.tags.m).map(function (x) { return lab('m', x); })).filter(Boolean).join(' · ') : '';
+      return '<li class="row"><span class="dot ' + s.type + '"></span><span class="name">' + esc(s.name) + '<span class="tagtxt">' + KIND[s.type] + (tt ? ' · ' + esc(tt) : '') + '</span></span>' +
+        '<button class="btn blue" type="button" style="padding:6px 14px;font-size:14px" data-sgok="' + esc(s.key) + '">Принять</button><button class="del" type="button" data-sgno="' + esc(s.key) + '" aria-label="Отклонить">×</button></li>';
+    }).join('') + '</ul>' : '';
+  }
+  function setStatus(s, v) {
+    s.status = v;
+    if (useDb) db('suggest/' + s.key, 'PATCH', { status: v }).catch(noop); else saveSugsLocal();
+  }
+  document.addEventListener('click', function (e) {
+    var ok = e.target.closest('[data-sgok]'), no = e.target.closest('[data-sgno]'); if (!ok && !no) return;
+    var key = (ok || no).dataset[ok ? 'sgok' : 'sgno'], s = SUGS.filter(function (x) { return x.key === key; })[0]; if (!s) return;
+    if (ok) {
+      var its = D.items();
+      if (!its.some(function (i) { return i.id === s.id; })) its.push({ id: s.id, type: s.type === 'venue' ? 'venue' : 'place', name: s.name });
+      D.saveItems(); if (s.tags) setTags(s.id, { w: s.tags.w, c: s.tags.c, m: arr(s.tags.m) });
+      setStatus(s, 'ok'); D.renderHim(); redecorate();
+      D.notify('her', '✅ ' + D.who('him') + ' добавил(а) твою идею в список: ' + s.name);
+    } else { setStatus(s, 'no'); D.notify('her', '❌ ' + D.who('him') + ' пока не добавил(а) идею: ' + s.name); }
+    renderSug(); renderFilter();
+  });
+
+  /* ---------- загрузка и обновление ---------- */
+  function loadAll() {
+    function local() { TAGS = lsGet('ds3-tags', {}); RATES = lsGet('ds3-rates', {}); SUGS = lsGet('ds3-sugs', []); MEET = lsGet('ds3-meet', 0); return Promise.resolve(); }
+    if (!useDb) return local();
+    return Promise.all([db('tags'), db('ratings'), db('suggest'), db('lastmeet')]).then(function (r) {
+      TAGS = r[0] || {}; RATES = r[1] || {}; MEET = +r[3] || 0;
+      SUGS = Object.keys(r[2] || {}).map(function (k) { var s = r[2][k]; s.key = k; return s; });
+    }).catch(local);
+  }
+  function renderAll() { renderFilter(); decorate(); renderRate(); renderMiss(); renderIdeas(); renderSug(); }
+  var lastPend = -1;
+  function cycle() {
+    return loadAll().then(function () {
+      redecorate(); renderAll();
+      var n = pending().length;
+      if (lastPend >= 0 && n > lastPend && D.ME() === 'him' && !document.getElementById('intro')) {
+        var t = D.toast('Ира предлагает идею 💡'); if (t) t.onclick = function () { D.goTab('him', 'list'); t.remove(); };
+      }
+      lastPend = n;
+    });
+  }
+  cycle(); setTimeout(renderAll, 1500);
+  setInterval(function () { if (!document.hidden) cycle(); }, 15000);
+})();
+</script>
 </body>
 </html>
