@@ -18,6 +18,7 @@ window.CONFIG = {
   himPhoto: 'him.jpg',          // твоё фото: файл him.jpg (видно только на твоей странице)
   pin: '1234',                  // код для твоей скрытой страницы, поменяй на свой
   greeting: 'Выбери любую кнопку, а остальное сюрприз.',
+  lat: 50.45, lon: 30.52,       // координаты города для погоды (сейчас Киев), поменяй на свои
 
   firebaseUrl: 'https://dates-c387e-default-rtdb.firebaseio.com',              // адрес базы Firebase, например https://xxx-default-rtdb.europe-west1.firebasedatabase.app
   tgToken: '8808003402:AAHt6v1E3XqR5XxIW_L-F56H-WJm1-35zpw',                  // токен Telegram-бота от @BotFather
@@ -325,6 +326,11 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
 .row.rt{align-items:flex-start}
 .pill.has::after{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b30;margin-left:6px}
 .dform{display:grid;gap:10px;margin-top:16px}
+/* ===== ДОБАВЛЕНО: админка на телефоне, формы, погода ===== */
+.secret{z-index:60;opacity:.4;width:48px;height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.overlay{z-index:100}
+.pcard .err{color:var(--orange);font-size:14px;min-height:1.3em}
+.wx{margin-top:12px;font-size:14px;color:var(--slate)}.wx:empty{display:none}
 </style>
 </head>
 <body>
@@ -353,6 +359,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
         <button class="pill" role="tab" data-tab="date" aria-selected="false">Свидание</button>
         <button class="pill" role="tab" data-tab="question" aria-selected="false">Вопрос</button>
         <button class="pill" role="tab" data-tab="visited" aria-selected="false">Были</button>
+        <button class="pill" role="tab" data-tab="tasks" aria-selected="false">Задания</button>
         <button class="pill" role="tab" data-tab="rating" aria-selected="false">Рейтинг</button>
         <button class="pill" id="her-back" data-go="him" hidden>← Админка</button>
       </div>
@@ -386,6 +393,15 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
         <div class="tiles" id="tiles"></div>
         <div class="surprise-wrap" style="margin-top:12px"><button class="textlink" type="button" id="reshuffle">Перемешать</button></div>
         <div id="stage" aria-live="polite"></div>
+        <h2 class="sec">Или придумай своё</h2>
+        <div class="pcard">
+          <label class="flabel" for="cu-name">Куда хочешь пойти?</label>
+          <input type="text" id="cu-name" maxlength="80" placeholder="Например, мастер-класс по керамике" autocomplete="off">
+          <label class="flabel" for="cu-when">Когда?</label>
+          <input type="datetime-local" id="cu-when">
+          <div class="err" id="cu-err" role="alert"></div>
+          <div><button class="btn blue" type="button" id="cu-send">Отправить запрос</button></div>
+        </div>
       </div>
     </div>
   </div>
@@ -399,6 +415,10 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
     </div></div>
   </div>
 
+  <div data-panel="tasks" hidden>
+    <div class="hero small"><div class="inner"><h1>Задания</h1><p>Маленькие задания для свидания. Отмечайте выполненные.</p></div></div>
+    <div class="band"><div class="inner" id="her-tasks"></div></div>
+  </div>
 
   <div data-panel="rating" hidden>
     <div class="hero small"><div class="inner"><h1>Наш рейтинг</h1><p>Оценки мест, где вы были. Каждый ставит свою, а здесь общий топ.</p></div></div>
@@ -411,7 +431,20 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
 
   <div data-panel="date" hidden>
     <div class="hero small"><div class="inner"><h1>Свидание</h1><p>Запросы на свидание. Партнёр может принять или изменить.</p></div></div>
-    <div class="band"><div class="inner"><div id="her-date"></div></div></div>
+    <div class="band"><div class="inner"><div id="her-date"></div>
+      <h2 class="sec">Предложить своё место</h2>
+      <div class="pcard">
+        <label class="flabel" for="sg-type-her">Что это</label>
+        <select id="sg-type-her"><option value="place">Место</option><option value="venue">Заведение</option></select>
+        <label class="flabel" for="sg-name-her">Название</label>
+        <input type="text" id="sg-name-her" maxlength="80" placeholder="Например, мастер-класс по керамике" autocomplete="off">
+        <label class="flabel" for="sg-when-her">День и время</label>
+        <input type="datetime-local" id="sg-when-her">
+        <div class="err" id="sg-err-her" role="alert"></div>
+        <div><button class="btn blue" type="button" data-sgsend="her">Предложить</button></div>
+      </div>
+      <div id="her-sug" style="margin-top:28px"></div>
+    </div></div>
   </div>
 
   <div data-panel="question" hidden>
@@ -439,6 +472,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
         <button class="pill" role="tab" data-tab="date" aria-selected="false">Свидание</button>
         <button class="pill" role="tab" data-tab="list" aria-selected="false">Список</button>
         <button class="pill" role="tab" data-tab="visited" aria-selected="false">Были</button>
+        <button class="pill" role="tab" data-tab="tasks" aria-selected="false">Задания</button>
         <button class="pill" role="tab" data-tab="rating" aria-selected="false">Рейтинг</button>
         <button class="pill" data-go="pick">Выбор</button>
         <button class="pill" data-go="question">Вопрос</button>
@@ -479,6 +513,11 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
     </div></div>
   </div>
 
+  <div data-panel="tasks" hidden>
+    <div class="hero small"><div class="inner"><h1>Задания</h1><p>Маленькие задания для свидания. Отмечайте выполненные.</p></div></div>
+    <div class="band"><div class="inner" id="him-tasks"></div></div>
+  </div>
+
   <div data-panel="rating" hidden>
     <div class="hero small"><div class="inner"><h1>Наш рейтинг</h1><p>Оценки мест, где вы были. Каждый ставит свою, а здесь общий топ.</p></div></div>
     <div class="band"><div class="inner">
@@ -490,7 +529,20 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
 
   <div data-panel="date" hidden>
     <div class="hero small"><div class="inner"><h1>Свидание</h1><p>Запросы на свидание. Партнёр может принять или изменить.</p></div></div>
-    <div class="band"><div class="inner"><div id="him-date"></div></div></div>
+    <div class="band"><div class="inner"><div id="him-date"></div>
+      <h2 class="sec">Предложить своё место</h2>
+      <div class="pcard">
+        <label class="flabel" for="sg-type-him">Что это</label>
+        <select id="sg-type-him"><option value="place">Место</option><option value="venue">Заведение</option></select>
+        <label class="flabel" for="sg-name-him">Название</label>
+        <input type="text" id="sg-name-him" maxlength="80" placeholder="Например, мастер-класс по керамике" autocomplete="off">
+        <label class="flabel" for="sg-when-him">День и время</label>
+        <input type="datetime-local" id="sg-when-him">
+        <div class="err" id="sg-err-him" role="alert"></div>
+        <div><button class="btn blue" type="button" data-sgsend="him">Предложить</button></div>
+      </div>
+      <div id="him-sug" style="margin-top:28px"></div>
+    </div></div>
   </div>
 
   <div data-panel="profile" hidden>
@@ -554,7 +606,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var uid = function () { return Math.random().toString(36).slice(2, 9); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-  var KIND = { place: 'Место', venue: 'Заведение' };
+  var KIND = { place: 'Место', venue: 'Заведение', custom: 'Своё свидание' };
   var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   var useDb = !!C.firebaseUrl, tgOn = !!(C.tgToken && C.tgChat);
 
@@ -565,7 +617,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
   function plural(n) { var m = n % 10, h = n % 100; if (m === 1 && h !== 11) return n + ' вариант'; if (m >= 2 && m <= 4 && (h < 12 || h > 14)) return n + ' варианта'; return n + ' вариантов'; }
 
   /* ---------- хранилище: Firebase (если настроен) или этот браузер ---------- */
-  var LS = { items: 'ds3-items', visited: 'ds3-visited', choices: 'ds3-choices', profile: 'ds3-profile', rolls: 'ds3-rolls', plan: 'ds3-plan', ratings: 'ds3-ratings' };
+  var LS = { items: 'ds3-items', visited: 'ds3-visited', choices: 'ds3-choices', profile: 'ds3-profile', rolls: 'ds3-rolls', plan: 'ds3-plan', ratings: 'ds3-ratings', tasks: 'ds3-tasks', sugs: 'ds3-sugs' };
   function lsGet(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function dbUrl(p) { return C.firebaseUrl.replace(/\/+$/, '') + '/' + p + '.json'; }
@@ -575,7 +627,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
   }
   function toArr(x) { return Array.isArray(x) ? x.filter(Boolean) : Object.keys(x || {}).map(function (k) { return x[k]; }); }
 
-  var items = (C.items || []).slice(), visited = {}, choices = [], rolls = [], plan = null, dbOk = false, ratings = {}, adminView = false;
+  var items = (C.items || []).slice(), visited = {}, choices = [], rolls = [], plan = null, dbOk = false, ratings = {}, adminView = false, tasksDone = {}, sugs = [];
 
   function load() {
     if (useDb) {
@@ -583,7 +635,8 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
         all = all || {};
         if (all.items) items = toArr(all.items).map(function (i) { return { id: i.id, type: i.type === 'venue' ? 'venue' : 'place', name: String(i.name) }; });
         else items = (C.items || []).slice();
-        visited = all.visited || {}; ratings = all.ratings || {};
+        visited = all.visited || {}; ratings = all.ratings || {}; tasksDone = all.tasks || {};
+        sugs = Object.keys(all.sugs || {}).map(function (k) { var x = all.sugs[k]; x.key = k; return x; });
         profile = all.profile || {};
         rolls = Object.keys(all.rolls || {}).map(function (k) { return all.rolls[k]; });
         plan = all.plan || lsGet(LS.plan, null);
@@ -596,7 +649,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
   }
   function loadLocal() {
     items = lsGet(LS.items, null) || (C.items || []).slice();
-    visited = lsGet(LS.visited, {}); ratings = lsGet(LS.ratings, {});
+    visited = lsGet(LS.visited, {}); ratings = lsGet(LS.ratings, {}); tasksDone = lsGet(LS.tasks, {}); sugs = lsGet(LS.sugs, []);
     profile = lsGet(LS.profile, {});
     rolls = lsGet(LS.rolls, []);
     plan = lsGet(LS.plan, null);
@@ -827,7 +880,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
     $('#' + prefix + '-vis-done').innerHTML = done.length ? done.map(function (i) { return visRow(i, editable); }).join('') : '<li class="empty">Пока нигде не были. Всё впереди.</li>';
     $('#' + prefix + '-vis-todo').innerHTML = todo.length ? todo.map(function (i) { return visRow(i, editable); }).join('') : '<li class="empty">Везде побывали.</li>';
   }
-  function renderHer() { updateCounts(); renderVisited('her', false); renderRating('her', adminView ? 'him' : 'her'); renderPlan(); if (!tilesOpen) dealTiles(); }
+  function renderHer() { updateCounts(); renderVisited('her', false); renderRating('her', adminView ? 'him' : 'her'); renderPlan(); renderTasks(); if (!tilesOpen) dealTiles(); }
 
   /* ---------- его страница ---------- */
   var SRC = { place: 'кнопка «Место»', venue: 'кнопка «Заведение»', any: 'сюрприз', tiles: 'квадратик' };
@@ -872,7 +925,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
       }).join('') : '<li class="empty">Пока пусто.</li>';
     });
   }
-  function renderHim() { renderLog(); renderLists(); renderVisited('him', true); renderRating('him', 'him'); renderPlan(); }
+  function renderHim() { renderLog(); renderLists(); renderVisited('him', true); renderRating('him', 'him'); renderPlan(); renderTasks(); }
 
   /* ---------- вкладка «Свидание»: запрос, принять, изменить ---------- */
   var editing = {};
@@ -882,7 +935,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
   function updateBadges() {
     ['her', 'him'].forEach(function (pf) {
       var b = $('#s-' + pf + ' [data-tab="date"]');
-      if (b) b.classList.toggle('has', !!(plan && plan.when && plan.status === 'pending' && plan.by !== dateWho(pf)));
+      if (b) b.classList.toggle('has', !!(plan && plan.when && plan.status === 'pending' && plan.by !== dateWho(pf)) || sugs.some(function (x) { return x.status === 'pending' && x.by !== dateWho(pf); }));
     });
   }
   function renderDate(pf, force) {
@@ -893,11 +946,11 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
       var mine = plan.by === who;
       var title = !pend ? 'Свидание принято ♥' : mine ? 'Ждём ответа' : 'Запрос на свидание' + (plan.edited ? ' · изменено' : '');
       h = '<div class="plancard' + (pend && !mine ? ' today' : '') + '"><div class="kind">' + title + '</div><div class="what">' + esc(plan.name) + '</div>' +
-        '<div class="when">' + KIND[plan.type] + ' · ' + esc(fmtWhen(plan.when)) + '</div>' +
+        '<div class="when">' + KIND[plan.type] + ' · ' + esc(fmtWhen(plan.when)) + '</div><div class="wx" data-wx="' + esc(plan.when) + '"></div>' +
         '<div class="when">' + (pend ? (mine ? 'Отправлено тобой' : 'От: ' + esc(nameOf(plan.by || 'her'))) : 'Принято: ' + esc(nameOf(plan.acceptedBy || plan.by || 'her'))) + ' · ' + esc(fmtTs(plan.ts)) + '</div>';
       if (!pend) h += '<div class="cd" data-cd="' + esc(plan.when) + '"></div>';
       if (editing[pf]) {
-        h += '<div class="dform"><label class="flabel" for="' + pf + '-ei">Куда</label><select id="' + pf + '-ei">' + items.map(function (i) { return '<option value="' + esc(i.id) + '"' + (i.id === plan.itemId ? ' selected' : '') + '>' + esc(i.name) + ' (' + KIND[i.type] + ')</option>'; }).join('') + '</select>' +
+        h += '<div class="dform"><label class="flabel" for="' + pf + '-ei">Куда</label><select id="' + pf + '-ei">' + (items.some(function (i) { return i.id === plan.itemId; }) ? '' : '<option value="' + esc(plan.itemId) + '" selected>' + esc(plan.name) + ' (Своё)</option>') + items.map(function (i) { return '<option value="' + esc(i.id) + '"' + (i.id === plan.itemId ? ' selected' : '') + '>' + esc(i.name) + ' (' + KIND[i.type] + ')</option>'; }).join('') + '</select>' +
           '<label class="flabel" for="' + pf + '-ew">Когда</label><input type="datetime-local" id="' + pf + '-ew" value="' + esc(plan.when) + '">' +
           '<div class="acts"><button class="btn blue" type="button" data-dact="save">Отправить изменения</button><button class="btn outline" type="button" data-dact="cancel">Отмена</button></div></div>';
       } else {
@@ -1057,7 +1110,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
   function planCard(pl, canReplan) {
     return '<div class="kind">' + (isToday(pl.when) ? 'Сегодня ♥' : 'Ближайшее свидание') + '</div>' +
       '<div class="what">' + esc(pl.name) + '</div><div class="when">' + esc(fmtWhen(pl.when)) + '</div>' +
-      '<div class="cd" data-cd="' + esc(pl.when) + '"></div>' +
+      '<div class="cd" data-cd="' + esc(pl.when) + '"></div><div class="wx" data-wx="' + esc(pl.when) + '"></div>' +
       '<div class="acts"><button class="btn blue" type="button" data-ics>Добавить в календарь</button>' +
       (canReplan ? '<button class="textlink" type="button" data-replan>Выбрать заново</button>' : '') + '</div>' + helpHtml();
   }
@@ -1083,7 +1136,7 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
         }
       });
     }
-    renderDate('her'); renderDate('him'); updateBadges();
+    renderDate('her'); renderDate('him'); renderSugs();
     updateCountdowns();
   }
   document.addEventListener('click', function (e) {
@@ -1205,6 +1258,149 @@ body{background:linear-gradient(180deg,#fff0f6,#ffd9ea) fixed}
     st.textContent = 'Сохраняю…';
     dbReq('profile', 'PUT', profile).then(function () { st.textContent = 'Сохранено. Ира увидит изменения при следующем открытии.'; })
       .catch(function () { st.textContent = 'Не удалось сохранить в базу. Проверь правила Firebase.'; });
+  });
+
+  /* ---------- своё свидание ---------- */
+  $('#cu-send').addEventListener('click', function () {
+    var n = $('#cu-name').value.trim(), w = $('#cu-when').value, err = $('#cu-err');
+    if (!n) { err.textContent = 'Напиши, куда хочешь пойти.'; return; }
+    if (!w) { err.textContent = 'Выбери дату и время.'; return; }
+    if (plan && plan.status === 'accepted' && !confirm('Уже есть принятое свидание. Заменить его?')) return;
+    recordChoice({ itemId: 'c' + uid(), name: n, type: 'custom', when: w, ts: Date.now() });
+    $('#cu-name').value = ''; $('#cu-when').value = ''; err.textContent = '';
+    renderPlan();
+    var b = $('#s-her .navtabs [data-tab="date"]'); if (b) b.click();
+  });
+
+  /* ---------- предложить своё место (подтверждает партнёр) ---------- */
+  function saveSug(s) {
+    lsSet(LS.sugs, sugs);
+    if (useDb) { var o = {}; Object.keys(s).forEach(function (k) { if (k !== 'key') o[k] = s[k]; }); dbReq('sugs/' + s.key, 'PUT', o).catch(function () {}); }
+  }
+  function delSug(key) {
+    sugs = sugs.filter(function (x) { return x.key !== key; }); lsSet(LS.sugs, sugs);
+    if (useDb) dbReq('sugs/' + key, 'DELETE').catch(function () {});
+  }
+  function renderSugs() {
+    ['her', 'him'].forEach(function (pf) {
+      var box = $('#' + pf + '-sug'); if (!box) return;
+      var who = dateWho(pf), list = sugs.slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, 8);
+      box.innerHTML = list.length ? '<h2 class="sec" style="margin-top:0">Предложенные места</h2>' + list.map(function (s) {
+        var mine = s.by === who, pend = s.status === 'pending';
+        var st = pend ? (mine ? 'Ждёт ответа' : 'Предложение от: ' + nameOf(s.by)) : s.status === 'accepted' ? 'Принято ♥ Добавлено в список и в свидание' : s.status === 'listed' ? 'Добавлено в общий список' : 'Отклонено';
+        var acts = pend && !mine
+          ? '<button class="btn blue" type="button" data-sg="accept" data-key="' + esc(s.key) + '">Принять ♥</button><button class="btn outline" type="button" data-sg="list" data-key="' + esc(s.key) + '">Только в список</button><button class="textlink" type="button" data-sg="decline" data-key="' + esc(s.key) + '">Отклонить</button>'
+          : '<button class="textlink" type="button" data-sg="del" data-key="' + esc(s.key) + '">' + (pend ? 'Отозвать' : 'Убрать') + '</button>';
+        return '<div class="plancard' + (pend && !mine ? ' today' : '') + '"><div class="kind">' + st + '</div><div class="what">' + esc(s.name) + '</div>' +
+          '<div class="when">' + KIND[s.type] + ' · ' + esc(fmtWhen(s.when)) + '</div>' + (s.status !== 'declined' ? '<div class="wx" data-wx="' + esc(s.when) + '"></div>' : '') +
+          '<div class="acts">' + acts + '</div></div>';
+      }).join('') : '';
+    });
+    updateBadges(); updateWeather();
+  }
+  document.addEventListener('click', function (e) {
+    var s = e.target.closest('[data-sgsend]');
+    if (s) {
+      var pf = s.dataset.sgsend, who = dateWho(pf), n = $('#sg-name-' + pf).value.trim(), w = $('#sg-when-' + pf).value, er = $('#sg-err-' + pf);
+      if (!n) { er.textContent = 'Напиши название места.'; return; }
+      if (!w) { er.textContent = 'Выбери день и время.'; return; }
+      var o = { key: Date.now() + uid(), name: n, type: $('#sg-type-' + pf).value, when: w, by: who, ts: Date.now(), status: 'pending' };
+      sugs.push(o); saveSug(o); $('#sg-name-' + pf).value = ''; $('#sg-when-' + pf).value = ''; er.textContent = '';
+      if (who === 'her') tg('💡 ' + P('herName') + ' предлагает место: ' + n + ' (' + KIND[o.type] + ')\nКогда: ' + fmtWhen(w) + '\nОтветь на вкладке «Свидание».');
+      renderSugs(); return;
+    }
+    var a = e.target.closest('[data-sg]'); if (!a) return;
+    var sec = a.closest('section'), pf2 = sec && sec.id === 's-him' ? 'him' : 'her', who2 = dateWho(pf2);
+    var o2 = sugs.filter(function (x) { return x.key === a.dataset.key; })[0]; if (!o2) return;
+    var act = a.dataset.sg, notify = who2 === 'her';
+    if (act === 'del') delSug(o2.key);
+    else if (act === 'decline') { o2.status = 'declined'; saveSug(o2); if (notify) tg('✖️ ' + P('herName') + ' отклонила предложение: ' + o2.name); }
+    else {
+      if (act === 'accept' && plan && plan.status === 'accepted' && !confirm('Уже есть принятое свидание. Заменить его?')) return;
+      var it = { id: 's' + uid(), type: o2.type, name: o2.name }; items.push(it); saveItems();
+      if (act === 'accept') savePlan({ itemId: it.id, name: it.name, type: it.type, when: o2.when, ts: Date.now(), by: o2.by, status: 'accepted', acceptedBy: who2, acceptedTs: Date.now() });
+      o2.status = act === 'accept' ? 'accepted' : 'listed'; saveSug(o2);
+      if (notify) tg('✅ ' + P('herName') + (act === 'accept' ? ' приняла' : ' добавила в список') + ': ' + o2.name + '\nКогда: ' + fmtWhen(o2.when));
+    }
+    renderLists(); updateCounts(); renderPlan(); if (!tilesOpen) dealTiles();
+  });
+
+  /* ---------- погода и подсказка про зонт ---------- */
+  var WX = {}, WXP = null;
+  function wxLoad() {
+    if (WXP) return WXP;
+    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + (C.lat || 50.45) + '&longitude=' + (C.lon || 30.52) + '&hourly=temperature_2m,precipitation_probability,weather_code&timezone=auto&forecast_days=16';
+    WXP = fetch(u).then(function (r) { return r.json(); }).then(function (j) { WX = j.hourly || {}; return WX; }).catch(function () { WXP = null; return {}; });
+    setTimeout(function () { WXP = null; }, 1800000);
+    return WXP;
+  }
+  function wxIcon(c) { if (c === 0) return '☀️'; if (c <= 2) return '⛅'; if (c === 3) return '☁️'; if (c === 45 || c === 48) return '🌫️'; if (c >= 51 && c <= 57) return '🌦️'; if ((c >= 61 && c <= 67) || (c >= 80 && c <= 82)) return '🌧️'; if ((c >= 71 && c <= 77) || c === 85 || c === 86) return '❄️'; if (c >= 95) return '⛈️'; return '🌡️'; }
+  function wxText(i) {
+    var t = Math.round(WX.temperature_2m[i]), p = WX.precipitation_probability[i] || 0, c = WX.weather_code[i], snow = (c >= 71 && c <= 77) || c === 85 || c === 86;
+    var tip = p >= 50 ? (snow ? 'Будет снег, одевайтесь теплее ❄️' : 'Возьмите зонт ☔') : p >= 30 ? 'Зонт на всякий случай ☂️' : 'Зонт не нужен 😎';
+    if (t <= 5) tip += '. Прохладно, нужна тёплая куртка'; else if (t >= 28) tip += '. Жарко, возьмите воду';
+    return wxIcon(c) + ' ' + t + '°C · осадки ' + p + '% · ' + tip;
+  }
+  function fillWx() {
+    if (!WX.time) return;
+    $$('[data-wx]').forEach(function (el) {
+      var v = el.dataset.wx, ms = new Date(v).getTime() - Date.now();
+      if (isNaN(ms) || ms < -3 * 3600000) { el.textContent = ''; return; }
+      if (ms > 15 * 86400000) { el.textContent = 'Прогноз появится за 16 дней до свидания'; return; }
+      var i = WX.time.indexOf(v.slice(0, 13) + ':00'); el.textContent = i < 0 ? '' : wxText(i);
+    });
+  }
+  function updateWeather() { if (!document.querySelector('[data-wx]')) return; fillWx(); wxLoad().then(fillWx); }
+
+  /* ---------- задания ---------- */
+  var tCat = 'all', tRand = null;
+  var TCAT = { talk: '💬 Разговор', fun: '🎲 Игры', act: '🚶 Активные', photo: '📸 Фото', love: '💌 Романтика' };
+  var TASKS = {
+    talk: ['Расскажите друг другу по воспоминанию, о котором ещё не говорили.', 'Каждый называет три вещи, которые ценит в другом.', 'Задайте друг другу по три вопроса из вкладки «Вопрос».', 'Расскажите, какое первое впечатление вы произвели друг на друга.', 'Поделитесь мечтой, о которой давно не говорили вслух.', 'Составьте список из пяти мест, куда хотите попасть в этом году.', 'Расскажите самый неловкий случай из школы.', 'Скажите, чему вы научились друг у друга.', 'Придумайте фразу, понятную только вам двоим.', 'Поговорите 10 минут без телефонов.'],
+    fun: ['Сыграйте в «Правду или действие», но только с добрыми вопросами.', 'Угадайте заказ друг друга до того, как он будет сделан.', 'Нарисуйте друг друга за 2 минуты и сравните портреты.', 'Придумайте историю про соседний столик, по предложению по очереди.', 'Устройте мини-викторину друг о друге из 5 вопросов.', 'Выберите для партнёра песню и объясните выбор.', 'Сыграйте 5 минут в «Города» или «Ассоциации».', 'Назовите три факта о себе: два правдивых, один ложный. Угадайте.', 'Придумайте название вашей паре, как для фильма.', 'Покажите жестами фильм, пусть партнёр угадает.'],
+    act: ['Пройдите маршрутом, по которому ещё не ходили.', 'Зайдите в магазин и выберите друг другу маленький подарок.', 'Найдите самый красивый вид поблизости.', 'Попробуйте блюдо, которое никто из вас раньше не пробовал.', 'Закажите друг другу напиток вслепую.', 'Весь путь пройдите, взявшись за руки.', 'Найдите пять предметов одного цвета и сфотографируйте.', 'Закажите друг другу десерт, выбранный партнёром.', 'Найдите самую уютную лавочку и посидите там 15 минут.', 'Встретьте вместе закат или рассвет.'],
+    photo: ['Сделайте совместное селфи в самом смешном стиле.', 'Сфотографируйте друг друга и покажите снимок только в конце свидания.', 'Снимите три кадра, которые рассказывают историю.', 'Сфотографируйте детали места, которые вам понравились.', 'Сделайте фото, где видны только ваши тени.', 'Запишите 15-секундное видео себе же через год.', 'Снимите короткий клип под вашу любимую песню.', 'Сделайте чёрно-белое фото как кадр из кино.', 'Попросите прохожего снять вас как для обложки журнала.', 'Выберите лучший кадр дня и поставьте на обои.'],
+    love: ['Напишите друг другу записки и обменяйтесь ими в конце свидания.', 'Скажите друг другу три комплимента, но не про внешность.', 'Подарите маленький сюрприз, купленный по дороге.', 'Придумайте друг другу ласковое прозвище.', 'Обнимайтесь 20 секунд молча.', 'Расскажите, когда поняли, что вам хорошо вместе.', 'Составьте плейлист свидания из трёх песен.', 'Загадайте желание на двоих и запишите его.', 'Договоритесь о следующем свидании, прежде чем расстаться.', 'Вспомните лучший момент встречи и скажите друг другу спасибо.']
+  };
+  function allTasks() { var a = []; Object.keys(TASKS).forEach(function (c) { TASKS[c].forEach(function (t, i) { a.push({ id: c + i, cat: c, t: t }); }); }); return a; }
+  function setTask(id, on) {
+    if (on) tasksDone[id] = today(); else delete tasksDone[id];
+    lsSet(LS.tasks, tasksDone);
+    if (useDb) dbReq('tasks/' + id, on ? 'PUT' : 'DELETE', on ? tasksDone[id] : undefined).catch(function () {});
+  }
+  function renderTasks() {
+    var all = allTasks(), n = all.filter(function (x) { return tasksDone[x.id]; }).length;
+    var list = all.filter(function (x) { return tCat === 'all' || x.cat === tCat; });
+    var chips = '<button class="pill" type="button" data-tcat="all" aria-pressed="' + (tCat === 'all') + '">Все</button>' +
+      Object.keys(TCAT).map(function (c) { return '<button class="pill" type="button" data-tcat="' + c + '" aria-pressed="' + (tCat === c) + '">' + TCAT[c] + '</button>'; }).join('');
+    var rc = tRand && all.filter(function (x) { return x.id === tRand; })[0];
+    var h = '<div class="progress">Выполнено <strong>' + n + '</strong> из ' + all.length + '<div class="bar"><i style="width:' + Math.round(n / all.length * 100) + '%"></i></div></div>' +
+      '<h2 class="sec">Случайное задание</h2>' +
+      (rc ? '<div class="qcard" style="margin-bottom:16px"><div class="kind">' + TCAT[rc.cat] + '</div><p class="qtext">' + esc(rc.t) + '</p></div>' : '') +
+      '<div class="surprise-wrap" style="margin:0 0 8px"><button class="btn blue" type="button" data-trand>Дать задание</button></div>' +
+      '<h2 class="sec">Все задания</h2><div class="chips">' + chips + '</div><ul class="rows">' +
+      list.map(function (x) {
+        var on = !!tasksDone[x.id];
+        return '<li class="row ' + (on ? 'visited' : '') + '"><button class="check" type="button" role="checkbox" aria-checked="' + on + '" data-task="' + x.id + '" aria-label="Выполнено">' + CHECK_SVG + '</button>' +
+          '<span class="name">' + esc(x.t) + '<br><span class="meta">' + TCAT[x.cat] + (on ? ' · ' + fmtDate(tasksDone[x.id]) : '') + '</span></span></li>';
+      }).join('') + '</ul>';
+    $('#her-tasks').innerHTML = h; $('#him-tasks').innerHTML = h;
+  }
+  document.addEventListener('click', function (e) {
+    var c = e.target.closest('[data-tcat]');
+    if (c) { tCat = c.dataset.tcat; renderTasks(); return; }
+    var k = e.target.closest('[data-task]');
+    if (k) {
+      var id = k.dataset.task, on = !tasksDone[id];
+      setTask(id, on);
+      if (on && k.closest('#s-her') && !adminView) { var t = allTasks().filter(function (x) { return x.id === id; })[0]; tg('✅ ' + P('herName') + ' выполнила задание: ' + (t ? t.t : id)); }
+      renderTasks(); return;
+    }
+    if (e.target.closest('[data-trand]')) {
+      var todo = allTasks().filter(function (x) { return !tasksDone[x.id] && (tCat === 'all' || x.cat === tCat) && x.id !== tRand; });
+      if (!todo.length) todo = allTasks().filter(function (x) { return x.id !== tRand; });
+      tRand = todo[Math.floor(Math.random() * todo.length)].id; renderTasks();
+    }
   });
 
   /* ---------- старт ---------- */
